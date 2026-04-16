@@ -21,17 +21,17 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: rb2000-web/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: cd rb2000-web && npm install
+        run: npm install
       - name: Build
-        run: cd rb2000-web && npm run build
+        run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './rb2000-web/dist'
+          path: './dist'
 
   deploy:
     environment:
