@@ -38,7 +38,7 @@ const FO2SteadyState: React.FC = () => {
         <input 
           type="range" 
           min="0" 
-          max="120" 
+          max="200" 
           value={depth} 
           onChange={(e) => setDepth(parseInt(e.target.value))} 
         />

@@ -35,7 +35,7 @@ const GasDensity: React.FC = () => {
           <span className="label">Depth</span>
           <span className="value">{displayDepth} <span className="unit">{depthUnit}</span></span>
         </div>
-        <input type="range" min="0" max="120" value={depth} onChange={(e) => setDepth(parseInt(e.target.value))} />
+        <input type="range" min="0" max="200" value={depth} onChange={(e) => setDepth(parseInt(e.target.value))} />
         
         <div className="row">
           <span className="label">fO2 (Oxygen)</span>
