@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useSettings } from '../context/SettingsContext';
+import type { Algorithm } from '../utils/calculations';
 
 const SettingsView: React.FC = () => {
   const { params, units, updateParams, updateUnits, resetToDefaults } = useSettings();
@@ -91,7 +92,7 @@ const SettingsView: React.FC = () => {
           <span className="label">Algorithm</span>
           <select 
             value={params.algorithm} 
-            onChange={(e) => updateParams({ algorithm: e.target.value as any })}
+            onChange={(e) => updateParams({ algorithm: e.target.value as Algorithm })}
           >
             <option value="Standard">Standard</option>
             <option value="Aspacher">Aspacher</option>

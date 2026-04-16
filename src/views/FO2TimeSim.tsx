@@ -66,6 +66,7 @@ const FO2TimeSim: React.FC = () => {
               tick={{ fontSize: 12 }}
             />
             <Tooltip 
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter={(value: any) => [Number(value).toFixed(3), 'pO2']}
               labelFormatter={(label) => `Time: ${label} min`}
             />
