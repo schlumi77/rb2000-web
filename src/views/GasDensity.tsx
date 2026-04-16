@@ -1,0 +1,76 @@
+
+import React, { useState, useMemo } from 'react';
+import { useSettings } from '../context/SettingsContext';
+import { calculateGasDensity, CONSTANTS, mToFt } from '../utils/calculations';
+
+const GasDensity: React.FC = () => {
+  const { params, units } = useSettings();
+  const [depth, setDepth] = useState(45);
+  const [fO2, setFO2] = useState(21);
+  const [fHe, setFHe] = useState(35);
+
+  const handleFO2Change = (val: number) => {
+    setFO2(val);
+    if (val + fHe > 100) setFHe(100 - val);
+  };
+
+  const handleFHeChange = (val: number) => {
+    setFHe(val);
+    if (fO2 + val > 100) setFO2(100 - val);
+  };
+
+  const density = useMemo(() => {
+    return calculateGasDensity(depth, fO2 / 100, fHe / 100, params.pSurf, params.dpdt);
+  }, [depth, fO2, fHe, params]);
+
+  const displayDepth = units === 'Metric' ? depth : Math.round(mToFt(depth));
+  const depthUnit = units === 'Metric' ? 'm' : 'ft';
+  const isSafe = density <= CONSTANTS.LIMIT_GAS_DENSITY;
+
+  return (
+    <div>
+      <h3 className="section-title">Inputs</h3>
+      <div className="card">
+        <div className="row">
+          <span className="label">Depth</span>
+          <span className="value">{displayDepth} <span className="unit">{depthUnit}</span></span>
+        </div>
+        <input type="range" min="0" max="120" value={depth} onChange={(e) => setDepth(parseInt(e.target.value))} />
+        
+        <div className="row">
+          <span className="label">fO2 (Oxygen)</span>
+          <span className="value">{fO2} <span className="unit">%</span></span>
+        </div>
+        <input type="range" min="1" max="100" value={fO2} onChange={(e) => handleFO2Change(parseInt(e.target.value))} />
+
+        <div className="row">
+          <span className="label">fHe (Helium)</span>
+          <span className="value">{fHe} <span className="unit">%</span></span>
+        </div>
+        <input type="range" min="0" max="99" value={fHe} onChange={(e) => handleFHeChange(parseInt(e.target.value))} />
+        
+        <div className="row">
+          <span className="label">fN2 (Nitrogen)</span>
+          <span className="value">{100 - fO2 - fHe} <span className="unit">%</span></span>
+        </div>
+      </div>
+
+      <h3 className="section-title">Results</h3>
+      <div className="card">
+        <div className="row">
+          <span className="label">Gas Density</span>
+          <span className={`value ${isSafe ? '' : 'danger'}`} style={{ color: isSafe ? 'var(--safe-color)' : 'var(--danger-color)' }}>
+            {density.toFixed(2)} <span className="unit">g/l</span>
+          </span>
+        </div>
+        {!isSafe && (
+          <div style={{ fontSize: '0.8em', color: 'var(--danger-color)', marginTop: '8px', textAlign: 'center' }}>
+            Warning: Density exceeds safe limit (5.2 g/l)
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default GasDensity;
