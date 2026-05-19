@@ -49,7 +49,7 @@ const FO2SteadyState: React.FC = () => {
         </div>
         <input 
           type="range" 
-          min="10" 
+          min="1" 
           max="100" 
           value={fO2Mix} 
           onChange={(e) => setFO2Mix(parseInt(e.target.value))} 

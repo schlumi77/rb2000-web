@@ -41,13 +41,13 @@ const FO2TimeSim: React.FC = () => {
           <span className="label">Supply fO2</span>
           <span className="value">{fO2Mix} <span className="unit">%</span></span>
         </div>
-        <input type="range" min="10" max="100" value={fO2Mix} onChange={(e) => setFO2Mix(parseInt(e.target.value))} />
+        <input type="range" min="1" max="100" value={fO2Mix} onChange={(e) => setFO2Mix(parseInt(e.target.value))} />
 
         <div className="row">
           <span className="label">Start Loop fO2</span>
           <span className="value">{fO2Start} <span className="unit">%</span></span>
         </div>
-        <input type="range" min="10" max="100" value={fO2Start} onChange={(e) => setFO2Start(parseInt(e.target.value))} />
+        <input type="range" min="1" max="100" value={fO2Start} onChange={(e) => setFO2Start(parseInt(e.target.value))} />
       </div>
 
       <h3 className="section-title">pO2 Over Time</h3>
