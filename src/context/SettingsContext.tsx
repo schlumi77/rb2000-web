@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { DEFAULT_PARAMS } from '../utils/calculations';
 import type { CalculationParams, Units } from '../utils/calculations';
 
 interface SettingsContextType {
@@ -9,17 +10,6 @@ interface SettingsContextType {
   updateUnits: (newUnits: Units) => void;
   resetToDefaults: () => void;
 }
-
-const DEFAULT_PARAMS: CalculationParams = {
-  amv: 20.0,
-  ke: 25.0,
-  kr: 10.0,
-  v: 8.0,
-  freq: 20.0,
-  pSurf: 1.0,
-  dpdt: 0.1,
-  algorithm: 'Standard'
-};
 
 const DEFAULT_UNITS: Units = 'Metric';
 

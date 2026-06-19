@@ -1,28 +1,20 @@
 
 import { describe, it, expect } from 'vitest';
 import type { CalculationParams } from './calculations';
-import { 
-  calculatePAmb, 
-  calculateFO2GG, 
-  calculateFO2Min, 
+import {
+  calculatePAmb,
+  calculateFO2GG,
+  calculateFO2Min,
   calculateGasDensity,
   simulateLoopGas,
   mToFt,
   ftToM,
   barPerMToAtaPerFt,
-  ataPerFtToBarPerM
+  ataPerFtToBarPerM,
+  DEFAULT_PARAMS
 } from './calculations';
 
-const defaultParams: CalculationParams = {
-  amv: 20.0,
-  ke: 25.0,
-  kr: 10.0,
-  v: 8.0,
-  freq: 20.0,
-  pSurf: 1.0,
-  dpdt: 0.1,
-  algorithm: 'Standard'
-};
+const defaultParams: CalculationParams = { ...DEFAULT_PARAMS };
 
 describe('RBCalculations Port', () => {
   describe('calculatePAmb', () => {

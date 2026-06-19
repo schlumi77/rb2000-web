@@ -93,7 +93,7 @@ const FO2TimeSim: React.FC = () => {
               <tr key={d.time} style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <td style={{ padding: '10px' }}>{d.time}</td>
                 <td style={{ padding: '10px' }}>{d.fO2.toFixed(1)}%</td>
-                <td style={{ padding: '10px', color: (d.pO2 < 0.16 || d.pO2 > 1.6) ? 'var(--danger-color)' : 'var(--primary-color)' }}>
+                <td style={{ padding: '10px', color: (d.pO2 < CONSTANTS.PPO2_LOW_LIMIT || d.pO2 > CONSTANTS.PPO2_HIGH_LIMIT) ? 'var(--danger-color)' : 'var(--primary-color)' }}>
                   {d.pO2.toFixed(3)}
                 </td>
               </tr>
