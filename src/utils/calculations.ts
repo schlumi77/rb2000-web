@@ -13,6 +13,18 @@ export interface CalculationParams {
   algorithm: Algorithm;
 }
 
+/** Default physiological and system parameters (shared by the app and tests). */
+export const DEFAULT_PARAMS: CalculationParams = {
+  amv: 20.0,
+  ke: 25.0,
+  kr: 10.0,
+  v: 8.0,
+  freq: 20.0,
+  pSurf: 1.0,
+  dpdt: 0.1,
+  algorithm: 'Standard',
+};
+
 export const CONSTANTS = {
   PPO2_LOW_LIMIT: 0.16,
   PPO2_HIGH_LIMIT: 1.60,

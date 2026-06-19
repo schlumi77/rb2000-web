@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, Activity, Gauge, Thermometer } from 'lucide-react';
+import { Settings, Activity, Gauge, Thermometer, LineChart } from 'lucide-react';
 
 export type ViewType = 'steady' | 'sim' | 'min' | 'density' | 'settings';
 
@@ -12,7 +12,7 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
   const items = [
     { id: 'steady', label: 'Steady', icon: Activity },
-    { id: 'sim', label: 'Sim', icon: Gauge },
+    { id: 'sim', label: 'Sim', icon: LineChart },
     { id: 'min', label: 'Min fO2', icon: Thermometer },
     { id: 'density', label: 'Density', icon: Gauge },
     { id: 'settings', label: 'Setup', icon: Settings },
