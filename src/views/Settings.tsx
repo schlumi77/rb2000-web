@@ -1,13 +1,24 @@
 
 import React from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { barPerMToAtaPerFt, ataPerFtToBarPerM } from '../utils/calculations';
 import type { Algorithm, CalculationParams } from '../utils/calculations';
 
 const SettingsView: React.FC = () => {
   const { params, units, updateParams, updateUnits, resetToDefaults } = useSettings();
+  const isMetric = units === 'Metric';
 
   const handleUnitToggle = () => {
     updateUnits(units === 'Metric' ? 'Imperial' : 'Metric');
+  };
+
+  // dpdt is stored canonically in bar/m. In Imperial mode it is shown and
+  // edited in ata/ft, converting back to the canonical value on change.
+  const dpdtDisplay = isMetric ? params.dpdt : Number(barPerMToAtaPerFt(params.dpdt).toFixed(4));
+  const handleDpdtChange = (raw: string) => {
+    const value = parseFloat(raw);
+    if (!Number.isFinite(value)) return;
+    updateParams({ dpdt: isMetric ? value : ataPerFtToBarPerM(value) });
   };
 
   // Only commit finite numbers. Clearing a field (parseFloat("") === NaN) or
@@ -81,7 +92,7 @@ const SettingsView: React.FC = () => {
           />
         </div>
         <div className="row">
-          <span className="label">p_surf [{units === 'Metric' ? 'bar' : 'ata'}]</span>
+          <span className="label">p_surf [{isMetric ? 'bar' : 'ata'}]</span>
           <input 
             type="number" 
             step="0.01"
@@ -90,12 +101,12 @@ const SettingsView: React.FC = () => {
           />
         </div>
         <div className="row">
-          <span className="label">dpdt [{units === 'Metric' ? 'bar/m' : 'ata/ft'}]</span>
-          <input 
-            type="number" 
-            step="0.01"
-            value={params.dpdt}
-            onChange={(e) => handleNumChange('dpdt', e.target.value)}
+          <span className="label">dpdt [{isMetric ? 'bar/m' : 'ata/ft'}]</span>
+          <input
+            type="number"
+            step={isMetric ? '0.01' : '0.001'}
+            value={dpdtDisplay}
+            onChange={(e) => handleDpdtChange(e.target.value)}
           />
         </div>
         <div className="row">

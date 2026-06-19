@@ -8,7 +8,9 @@ import {
   calculateGasDensity,
   simulateLoopGas,
   mToFt,
-  ftToM
+  ftToM,
+  barPerMToAtaPerFt,
+  ataPerFtToBarPerM
 } from './calculations';
 
 const defaultParams: CalculationParams = {
@@ -136,6 +138,23 @@ describe('RBCalculations Port', () => {
 
     it('should convert feet to meters correctly', () => {
       expect(ftToM(33.333333333333336)).toBeCloseTo(10, 5);
+    });
+
+    it('should convert the pressure gradient bar/m to ata/ft', () => {
+      // 0.1 bar/m * 0.3 m/ft = 0.03 ata/ft
+      expect(barPerMToAtaPerFt(0.1)).toBeCloseTo(0.03, 5);
+    });
+
+    it('should round-trip the pressure gradient conversion', () => {
+      expect(ataPerFtToBarPerM(barPerMToAtaPerFt(0.1))).toBeCloseTo(0.1, 5);
+    });
+
+    it('should give an identical pAmb in metric and imperial representations', () => {
+      // Same physical depth + matching gradient must yield the same ambient
+      // pressure regardless of the unit system the user has selected.
+      const metricPAmb = calculatePAmb(200, 1.0, 0.1);
+      const imperialPAmb = calculatePAmb(mToFt(200), 1.0, barPerMToAtaPerFt(0.1));
+      expect(imperialPAmb).toBeCloseTo(metricPAmb, 5);
     });
   });
 });
