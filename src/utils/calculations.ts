@@ -95,7 +95,13 @@ export const simulateLoopGas = (
 
   // Loops calculation from legacy code: (NUMBER_CALCULATION_LOOPS * (V / (AMV * Kr)) * freq)
   // Legacy NUMBER_CALCULATION_LOOPS was 9
-  const loops = Math.floor(9 * (params.v / (params.amv * Kr_decimal)) * freq);
+  // Guard against degenerate inputs (e.g. Kr = 0 or amv = 0) that make the
+  // loop count Infinity/NaN and would otherwise freeze the browser tab.
+  const SAFETY_MAX_LOOPS = 100000;
+  const rawLoops = 9 * (params.v / (params.amv * Kr_decimal)) * freq;
+  const loops = Number.isFinite(rawLoops) && rawLoops > 0
+    ? Math.min(Math.floor(rawLoops), SAFETY_MAX_LOOPS)
+    : 0;
 
   const timeArr: number[] = [];
   const fO2Arr: number[] = [];

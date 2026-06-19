@@ -117,6 +117,16 @@ describe('RBCalculations Port', () => {
       expect(result.fO2[result.fO2.length - 1]).toBeGreaterThan(0.21);
       expect(result.fO2[result.fO2.length - 1]).toBeLessThanOrEqual(1.0);
     });
+
+    it('should not hang or produce Infinity loops when Kr is 0', () => {
+      // Kr = 0 makes the legacy loop-count formula divide by zero (Infinity),
+      // which would freeze the browser. The guard must bound it to a finite count.
+      const noLeakParams: CalculationParams = { ...defaultParams, kr: 0 };
+      const result = simulateLoopGas(21, 0.5, 0.21, noLeakParams);
+      expect(result.time.length).toBe(0);
+      expect(result.fO2.length).toBe(0);
+      expect(result.pO2.length).toBe(0);
+    });
   });
 
   describe('Unit Conversions', () => {

@@ -1,13 +1,23 @@
 
 import React from 'react';
 import { useSettings } from '../context/SettingsContext';
-import type { Algorithm } from '../utils/calculations';
+import type { Algorithm, CalculationParams } from '../utils/calculations';
 
 const SettingsView: React.FC = () => {
   const { params, units, updateParams, updateUnits, resetToDefaults } = useSettings();
 
   const handleUnitToggle = () => {
     updateUnits(units === 'Metric' ? 'Imperial' : 'Metric');
+  };
+
+  // Only commit finite numbers. Clearing a field (parseFloat("") === NaN) or
+  // typing an invalid value must never poison params, since NaN propagates
+  // through every safety calculation and is persisted to localStorage.
+  const handleNumChange = (key: keyof CalculationParams, raw: string) => {
+    const value = parseFloat(raw);
+    if (Number.isFinite(value)) {
+      updateParams({ [key]: value } as Partial<CalculationParams>);
+    }
   };
 
   return (
@@ -26,16 +36,16 @@ const SettingsView: React.FC = () => {
           <span className="label">RMV [l/min]</span>
           <input 
             type="number" 
-            value={params.amv} 
-            onChange={(e) => updateParams({ amv: parseFloat(e.target.value) })}
+            value={params.amv}
+            onChange={(e) => handleNumChange('amv', e.target.value)}
           />
         </div>
         <div className="row">
           <span className="label">Ke</span>
           <input 
             type="number" 
-            value={params.ke} 
-            onChange={(e) => updateParams({ ke: parseFloat(e.target.value) })}
+            value={params.ke}
+            onChange={(e) => handleNumChange('ke', e.target.value)}
           />
         </div>
         <div className="row">
@@ -46,8 +56,8 @@ const SettingsView: React.FC = () => {
           <span className="label">Freq [1/min]</span>
           <input 
             type="number" 
-            value={params.freq} 
-            onChange={(e) => updateParams({ freq: parseFloat(e.target.value) })}
+            value={params.freq}
+            onChange={(e) => handleNumChange('freq', e.target.value)}
           />
         </div>
       </div>
@@ -58,16 +68,16 @@ const SettingsView: React.FC = () => {
           <span className="label">Kr [%]</span>
           <input 
             type="number" 
-            value={params.kr} 
-            onChange={(e) => updateParams({ kr: parseFloat(e.target.value) })}
+            value={params.kr}
+            onChange={(e) => handleNumChange('kr', e.target.value)}
           />
         </div>
         <div className="row">
           <span className="label">V [l]</span>
           <input 
             type="number" 
-            value={params.v} 
-            onChange={(e) => updateParams({ v: parseFloat(e.target.value) })}
+            value={params.v}
+            onChange={(e) => handleNumChange('v', e.target.value)}
           />
         </div>
         <div className="row">
@@ -75,8 +85,8 @@ const SettingsView: React.FC = () => {
           <input 
             type="number" 
             step="0.01"
-            value={params.pSurf} 
-            onChange={(e) => updateParams({ pSurf: parseFloat(e.target.value) })}
+            value={params.pSurf}
+            onChange={(e) => handleNumChange('pSurf', e.target.value)}
           />
         </div>
         <div className="row">
@@ -84,8 +94,8 @@ const SettingsView: React.FC = () => {
           <input 
             type="number" 
             step="0.01"
-            value={params.dpdt} 
-            onChange={(e) => updateParams({ dpdt: parseFloat(e.target.value) })}
+            value={params.dpdt}
+            onChange={(e) => handleNumChange('dpdt', e.target.value)}
           />
         </div>
         <div className="row">
