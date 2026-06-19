@@ -36,12 +36,13 @@ const FO2SteadyState: React.FC = () => {
           <span className="label">Supply fO2</span>
           <span className="value">{fO2Mix} <span className="unit">%</span></span>
         </div>
-        <input 
-          type="range" 
-          min="1" 
-          max="100" 
-          value={fO2Mix} 
-          onChange={(e) => setFO2Mix(parseInt(e.target.value))} 
+        <input
+          type="range"
+          min="1"
+          max="100"
+          value={fO2Mix}
+          aria-label="Supply fO2 in percent"
+          onChange={(e) => setFO2Mix(parseInt(e.target.value))}
         />
       </div>
 

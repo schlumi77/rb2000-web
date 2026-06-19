@@ -36,13 +36,13 @@ const GasDensity: React.FC = () => {
           <span className="label">fO2 (Oxygen)</span>
           <span className="value">{fO2} <span className="unit">%</span></span>
         </div>
-        <input type="range" min="1" max="100" value={fO2} onChange={(e) => handleFO2Change(parseInt(e.target.value))} />
+        <input type="range" min="1" max="100" value={fO2} aria-label="fO2 (oxygen) in percent" onChange={(e) => handleFO2Change(parseInt(e.target.value))} />
 
         <div className="row">
           <span className="label">fHe (Helium)</span>
           <span className="value">{fHe} <span className="unit">%</span></span>
         </div>
-        <input type="range" min="0" max="99" value={fHe} onChange={(e) => handleFHeChange(parseInt(e.target.value))} />
+        <input type="range" min="0" max="99" value={fHe} aria-label="fHe (helium) in percent" onChange={(e) => handleFHeChange(parseInt(e.target.value))} />
         
         <div className="row">
           <span className="label">fN2 (Nitrogen)</span>

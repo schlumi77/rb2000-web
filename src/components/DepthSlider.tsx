@@ -45,6 +45,7 @@ const DepthSlider: React.FC<DepthSliderProps> = ({ depth, onChange }) => {
         max={max}
         step={step}
         value={displayValue}
+        aria-label={`Depth in ${unit}`}
         onChange={(e) => handleChange(e.target.value)}
       />
     </>

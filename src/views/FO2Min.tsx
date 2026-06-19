@@ -34,7 +34,7 @@ const FO2Min: React.FC = () => {
           <span className="label">Target pO2</span>
           <span className="value">{(pO2MinTarget/100).toFixed(2)} <span className="unit">{pressureUnit}</span></span>
         </div>
-        <input type="range" min="16" max="160" value={pO2MinTarget} onChange={(e) => setPO2MinTarget(parseInt(e.target.value))} />
+        <input type="range" min="16" max="160" value={pO2MinTarget} aria-label="Target pO2" onChange={(e) => setPO2MinTarget(parseInt(e.target.value))} />
       </div>
 
       <h3 className="section-title">Required Supply Gas</h3>
