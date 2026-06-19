@@ -15,7 +15,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'appicon.png'],
       manifest: {
         name: 'RB2000 — Rebreather Diving Calculator',
         short_name: 'RB2000',
@@ -29,6 +29,13 @@ export default defineConfig({
         start_url: '/rb2000-web/',
         icons: [
           {
+            src: 'appicon.png',
+            sizes: '152x152',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            // Scalable fallback so launchers always have a large-size icon.
             src: 'favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
