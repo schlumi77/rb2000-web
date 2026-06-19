@@ -62,9 +62,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const updateUnits = (newUnits: Units) => {
+    // Parameters are stored canonically in metric, so switching units only
+    // changes how depth and dpdt are presented — no stored values are touched.
     setUnits(newUnits);
-    // If switching to Imperial, we might want to adjust dpdt if it's currently at metric default
-    // But for now, we leave it to the user or handle it in the settings UI.
   };
 
   const resetToDefaults = () => {

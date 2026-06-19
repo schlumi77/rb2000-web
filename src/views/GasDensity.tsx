@@ -1,10 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { calculateGasDensity, CONSTANTS, mToFt } from '../utils/calculations';
+import { calculateGasDensity, CONSTANTS } from '../utils/calculations';
+import DepthSlider from '../components/DepthSlider';
 
 const GasDensity: React.FC = () => {
-  const { params, units } = useSettings();
+  const { params } = useSettings();
   const [depth, setDepth] = useState(45);
   const [fO2, setFO2] = useState(21);
   const [fHe, setFHe] = useState(35);
@@ -23,20 +24,14 @@ const GasDensity: React.FC = () => {
     return calculateGasDensity(depth, fO2 / 100, fHe / 100, params.pSurf, params.dpdt);
   }, [depth, fO2, fHe, params]);
 
-  const displayDepth = units === 'Metric' ? depth : Math.round(mToFt(depth));
-  const depthUnit = units === 'Metric' ? 'm' : 'ft';
   const isSafe = density <= CONSTANTS.LIMIT_GAS_DENSITY;
 
   return (
     <div>
       <h3 className="section-title">Inputs</h3>
       <div className="card">
-        <div className="row">
-          <span className="label">Depth</span>
-          <span className="value">{displayDepth} <span className="unit">{depthUnit}</span></span>
-        </div>
-        <input type="range" min="0" max="200" value={depth} onChange={(e) => setDepth(parseInt(e.target.value))} />
-        
+        <DepthSlider depth={depth} onChange={setDepth} />
+
         <div className="row">
           <span className="label">fO2 (Oxygen)</span>
           <span className="value">{fO2} <span className="unit">%</span></span>

@@ -152,3 +152,12 @@ export const calculateGasDensity = (depth: number, fO2: number, fHe: number, pSu
  */
 export const mToFt = (m: number): number => m / CONSTANTS.METER_FT_CONVERSION;
 export const ftToM = (ft: number): number => ft * CONSTANTS.METER_FT_CONVERSION;
+
+/**
+ * Pressure-gradient conversions between bar/m (metric) and ata/ft (imperial).
+ * dpdt is a pressure-per-distance quantity, so converting the distance from
+ * metres to feet scales it by METER_FT_CONVERSION (metres per foot). Using the
+ * same constant as mToFt/ftToM keeps pAmb identical across unit systems.
+ */
+export const barPerMToAtaPerFt = (v: number): number => v * CONSTANTS.METER_FT_CONVERSION;
+export const ataPerFtToBarPerM = (v: number): number => v / CONSTANTS.METER_FT_CONVERSION;

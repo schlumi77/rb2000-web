@@ -1,7 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { calculateFO2Min, calculatePAmb, CONSTANTS, mToFt } from '../utils/calculations';
+import { calculateFO2Min, calculatePAmb, CONSTANTS } from '../utils/calculations';
+import DepthSlider from '../components/DepthSlider';
 
 const FO2Min: React.FC = () => {
   const { params, units } = useSettings();
@@ -21,20 +22,14 @@ const FO2Min: React.FC = () => {
     };
   }, [depth, pO2MinTarget, params]);
 
-  const displayDepth = units === 'Metric' ? depth : Math.round(mToFt(depth));
-  const depthUnit = units === 'Metric' ? 'm' : 'ft';
   const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
 
   return (
     <div>
       <h3 className="section-title">Inputs</h3>
       <div className="card">
-        <div className="row">
-          <span className="label">Depth</span>
-          <span className="value">{displayDepth} <span className="unit">{depthUnit}</span></span>
-        </div>
-        <input type="range" min="0" max="200" value={depth} onChange={(e) => setDepth(parseInt(e.target.value))} />
-        
+        <DepthSlider depth={depth} onChange={setDepth} />
+
         <div className="row">
           <span className="label">Target pO2</span>
           <span className="value">{(pO2MinTarget/100).toFixed(2)} <span className="unit">{pressureUnit}</span></span>
