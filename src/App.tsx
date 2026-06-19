@@ -1,14 +1,17 @@
 
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import './App.css'
 import { SettingsProvider } from './context/SettingsContext'
 import Navigation from './components/Navigation'
 import type { ViewType } from './components/Navigation'
 import SettingsView from './views/Settings'
 import FO2SteadyState from './views/FO2SteadyState'
-import FO2TimeSim from './views/FO2TimeSim'
 import FO2Min from './views/FO2Min'
 import GasDensity from './views/GasDensity'
+
+// The loop simulation is the only view that pulls in the (large) charting
+// library, so it is loaded on demand to keep the initial bundle small.
+const FO2TimeSim = lazy(() => import('./views/FO2TimeSim'))
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('steady')
@@ -42,7 +45,9 @@ function App() {
           {getTitle()}
         </header>
         <main className="container">
-          {renderView()}
+          <Suspense fallback={<div className="section-title">Loading…</div>}>
+            {renderView()}
+          </Suspense>
         </main>
         <Navigation currentView={currentView} onViewChange={setCurrentView} />
       </div>
