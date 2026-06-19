@@ -1,12 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { barPerMToAtaPerFt, ataPerFtToBarPerM } from '../utils/calculations';
 import type { Algorithm, CalculationParams } from '../utils/calculations';
+import About from './About';
 
 const SettingsView: React.FC = () => {
   const { params, units, updateParams, updateUnits, resetToDefaults } = useSettings();
   const isMetric = units === 'Metric';
+  const [showAbout, setShowAbout] = useState(false);
+
+  if (showAbout) {
+    return <About onBack={() => setShowAbout(false)} />;
+  }
 
   const handleUnitToggle = () => {
     updateUnits(units === 'Metric' ? 'Imperial' : 'Metric');
@@ -139,6 +145,27 @@ const SettingsView: React.FC = () => {
             <option value="Standard">Standard</option>
             <option value="Aspacher">Aspacher</option>
           </select>
+        </div>
+      </div>
+
+      <h3 className="section-title">Information</h3>
+      <div className="card">
+        <div
+          className="row"
+          role="button"
+          tabIndex={0}
+          aria-label="About this app"
+          onClick={() => setShowAbout(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowAbout(true);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <span className="label">About RB2000</span>
+          <span className="value">›</span>
         </div>
       </div>
 
