@@ -25,16 +25,29 @@ const DEFAULT_UNITS: Units = 'Metric';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [params, setParams] = useState<CalculationParams>(() => {
+// Defensively load persisted params: tolerate corrupt JSON and backfill any
+// missing keys from the defaults (so older/partial stored shapes can't leave
+// the app with undefined parameters or fail to mount on a parse error).
+const loadParams = (): CalculationParams => {
+  try {
     const saved = localStorage.getItem('rb2000_params');
-    return saved ? JSON.parse(saved) : DEFAULT_PARAMS;
-  });
+    if (!saved) return DEFAULT_PARAMS;
+    const parsed = JSON.parse(saved) as Partial<CalculationParams>;
+    return { ...DEFAULT_PARAMS, ...parsed };
+  } catch {
+    return DEFAULT_PARAMS;
+  }
+};
 
-  const [units, setUnits] = useState<Units>(() => {
-    const saved = localStorage.getItem('rb2000_units');
-    return (saved as Units) || DEFAULT_UNITS;
-  });
+const loadUnits = (): Units => {
+  const saved = localStorage.getItem('rb2000_units');
+  return saved === 'Metric' || saved === 'Imperial' ? saved : DEFAULT_UNITS;
+};
+
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [params, setParams] = useState<CalculationParams>(loadParams);
+
+  const [units, setUnits] = useState<Units>(loadUnits);
 
   useEffect(() => {
     localStorage.setItem('rb2000_params', JSON.stringify(params));
