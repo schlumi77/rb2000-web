@@ -30,7 +30,7 @@ export default defineConfig({
         icons: [
           {
             src: 'appicon.png',
-            sizes: '152x152',
+            sizes: '1024x1024',
             type: 'image/png',
             purpose: 'any',
           },
