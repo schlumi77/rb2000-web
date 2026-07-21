@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { simulateLoopGas, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
+import SliderRow from '../components/SliderRow';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 const FO2TimeSim: React.FC = () => {
@@ -32,17 +33,25 @@ const FO2TimeSim: React.FC = () => {
       <div className="card">
         <DepthSlider depth={depth} onChange={setDepth} />
 
-        <div className="row">
-          <span className="label">Supply fO2</span>
-          <span className="value">{fO2Mix} <span className="unit">%</span></span>
-        </div>
-        <input type="range" min="1" max="100" value={fO2Mix} aria-label="Supply fO2 in percent" onChange={(e) => setFO2Mix(parseInt(e.target.value))} />
+        <SliderRow
+          label="Supply fO2"
+          value={fO2Mix}
+          min={1}
+          max={100}
+          unit="%"
+          ariaLabel="Supply fO2 in percent"
+          onChange={setFO2Mix}
+        />
 
-        <div className="row">
-          <span className="label">Start Loop fO2</span>
-          <span className="value">{fO2Start} <span className="unit">%</span></span>
-        </div>
-        <input type="range" min="1" max="100" value={fO2Start} aria-label="Start loop fO2 in percent" onChange={(e) => setFO2Start(parseInt(e.target.value))} />
+        <SliderRow
+          label="Start Loop fO2"
+          value={fO2Start}
+          min={1}
+          max={100}
+          unit="%"
+          ariaLabel="Start loop fO2 in percent"
+          onChange={setFO2Start}
+        />
       </div>
 
       <h3 className="section-title">pO2 Over Time</h3>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { mToFt, ftToM } from '../utils/calculations';
+import SliderRow from './SliderRow';
 
 // Canonical maximum operating depth, stored in metres.
 const MAX_DEPTH_M = 200;
@@ -27,28 +28,17 @@ const DepthSlider: React.FC<DepthSliderProps> = ({ depth, onChange }) => {
   const max = isMetric ? MAX_DEPTH_M : Math.round(mToFt(MAX_DEPTH_M));
   const step = isMetric ? 1 : 5;
 
-  const handleChange = (raw: string) => {
-    const value = parseInt(raw, 10);
-    if (!Number.isFinite(value)) return;
-    onChange(isMetric ? value : ftToM(value));
-  };
-
   return (
-    <>
-      <div className="row">
-        <span className="label">Depth</span>
-        <span className="value">{displayValue} <span className="unit">{unit}</span></span>
-      </div>
-      <input
-        type="range"
-        min="0"
-        max={max}
-        step={step}
-        value={displayValue}
-        aria-label={`Depth in ${unit}`}
-        onChange={(e) => handleChange(e.target.value)}
-      />
-    </>
+    <SliderRow
+      label="Depth"
+      value={displayValue}
+      min={0}
+      max={max}
+      step={step}
+      unit={unit}
+      ariaLabel={`Depth in ${unit}`}
+      onChange={(value) => onChange(isMetric ? value : ftToM(value))}
+    />
   );
 };
 

@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { calculateFO2GG, calculatePAmb, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
+import SliderRow from '../components/SliderRow';
 
 const FO2SteadyState: React.FC = () => {
   const { params, units } = useSettings();
@@ -32,17 +33,14 @@ const FO2SteadyState: React.FC = () => {
       <div className="card">
         <DepthSlider depth={depth} onChange={setDepth} />
 
-        <div className="row">
-          <span className="label">Supply fO2</span>
-          <span className="value">{fO2Mix} <span className="unit">%</span></span>
-        </div>
-        <input
-          type="range"
-          min="1"
-          max="100"
+        <SliderRow
+          label="Supply fO2"
           value={fO2Mix}
-          aria-label="Supply fO2 in percent"
-          onChange={(e) => setFO2Mix(parseInt(e.target.value))}
+          min={1}
+          max={100}
+          unit="%"
+          ariaLabel="Supply fO2 in percent"
+          onChange={setFO2Mix}
         />
       </div>
 
