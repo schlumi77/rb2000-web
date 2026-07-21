@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { calculateGasDensity, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
+import SliderRow from '../components/SliderRow';
 
 const GasDensity: React.FC = () => {
   const { params } = useSettings();
@@ -32,18 +33,26 @@ const GasDensity: React.FC = () => {
       <div className="card">
         <DepthSlider depth={depth} onChange={setDepth} />
 
-        <div className="row">
-          <span className="label">fO2 (Oxygen)</span>
-          <span className="value">{fO2} <span className="unit">%</span></span>
-        </div>
-        <input type="range" min="1" max="100" value={fO2} aria-label="fO2 (oxygen) in percent" onChange={(e) => handleFO2Change(parseInt(e.target.value))} />
+        <SliderRow
+          label="fO2 (Oxygen)"
+          value={fO2}
+          min={1}
+          max={100}
+          unit="%"
+          ariaLabel="fO2 (oxygen) in percent"
+          onChange={handleFO2Change}
+        />
 
-        <div className="row">
-          <span className="label">fHe (Helium)</span>
-          <span className="value">{fHe} <span className="unit">%</span></span>
-        </div>
-        <input type="range" min="0" max="99" value={fHe} aria-label="fHe (helium) in percent" onChange={(e) => handleFHeChange(parseInt(e.target.value))} />
-        
+        <SliderRow
+          label="fHe (Helium)"
+          value={fHe}
+          min={0}
+          max={99}
+          unit="%"
+          ariaLabel="fHe (helium) in percent"
+          onChange={handleFHeChange}
+        />
+
         <div className="row">
           <span className="label">fN2 (Nitrogen)</span>
           <span className="value">{100 - fO2 - fHe} <span className="unit">%</span></span>

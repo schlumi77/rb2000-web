@@ -52,6 +52,46 @@ input[type="range"] {
   margin: 15px 0;
 }
 
+.slider-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.slider-control input[type="range"] {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.stepper {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--bg-color);
+  color: var(--primary-color);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.stepper:active {
+  opacity: 0.6;
+}
+
+.stepper:disabled {
+  color: var(--text-secondary);
+  opacity: 0.4;
+  cursor: default;
+}
+
 .container {
   max-width: 600px;
   margin: 0 auto;

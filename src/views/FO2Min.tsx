@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { calculateFO2Min, calculatePAmb, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
+import SliderRow from '../components/SliderRow';
 
 const FO2Min: React.FC = () => {
   const { params, units } = useSettings();
@@ -30,11 +31,16 @@ const FO2Min: React.FC = () => {
       <div className="card">
         <DepthSlider depth={depth} onChange={setDepth} />
 
-        <div className="row">
-          <span className="label">Target pO2</span>
-          <span className="value">{(pO2MinTarget/100).toFixed(2)} <span className="unit">{pressureUnit}</span></span>
-        </div>
-        <input type="range" min="16" max="160" value={pO2MinTarget} aria-label="Target pO2" onChange={(e) => setPO2MinTarget(parseInt(e.target.value))} />
+        <SliderRow
+          label="Target pO2"
+          value={pO2MinTarget}
+          min={16}
+          max={160}
+          unit={pressureUnit}
+          displayValue={(pO2MinTarget / 100).toFixed(2)}
+          ariaLabel="Target pO2"
+          onChange={setPO2MinTarget}
+        />
       </div>
 
       <h3 className="section-title">Required Supply Gas</h3>
