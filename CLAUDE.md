@@ -47,4 +47,4 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 ## Notes
 
 - This is a diving-safety tool. Be conservative with the calculation logic; when in doubt about a formula, ask rather than guess.
-- `GEMINI.md` covers the same ground for other agents — keep the two roughly in sync when project conventions change.
+- This file is the single source of agent guidance for the repo — update it when project conventions change.
