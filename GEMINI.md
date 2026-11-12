@@ -41,9 +41,10 @@ Run `npm test` and `npm run lint` before considering a change done; `npm run bui
 ### Architecture
 - **Logic Separation:** All mathematical models are localized in `src/utils/calculations.ts` — pure, side-effect-free functions with no React/DOM dependencies. It is the single source of truth for constants (`CONSTANTS`), defaults (`DEFAULT_PARAMS`), and the two algorithm variants (`Standard` and `Aspacher`).
 - **Pure Functions:** Calculation utilities must remain pure and fully tested in `calculations.test.ts`. Add or adjust tests whenever the math changes.
-- **State:** Physiological/system parameters (`amv`, `ke`, `kr`, `v`, `freq`, `pSurf`, `dpdt`, `algorithm`) are managed via `SettingsContext` and persisted to `localStorage`.
+- **State:** Physiological/system parameters (`amv`, `ke`, `kr`, `v`, `freq`, `pSurf`, `dpdt`, `algorithm`) are managed via `SettingsContext` and persisted to `localStorage`. Every load and update passes through `sanitizeParams`, which keeps params inside `PARAM_LIMITS` (both in `calculations.ts`) so the formulas never see zero, negative or non-finite input.
+- **Dive inputs:** `src/context/DiveInputsContext.tsx` holds the calculator inputs (depth, supply $fO_2$, etc.) above the views, so they survive tab switches; depth is shared by all views. Not persisted. Put new view inputs here rather than in view-local `useState`.
 - **Views:** Views live in `src/views/` and are switched by a simple `currentView` state in `src/App.tsx` (no router): `FO2SteadyState`, `FO2TimeSim` (lazy-loaded — pulls in Recharts), `FO2Min`, `GasDensity`, `Settings`. Navigation is `src/components/Navigation.tsx`.
-- **Shared inputs:** Reuse `src/components/SliderRow.tsx` (labelled slider with −/+ stepper buttons) and `src/components/DepthSlider.tsx` (unit-aware depth input built on `SliderRow`) for new numeric inputs.
+- **Shared inputs:** Reuse `src/components/SliderRow.tsx` (labelled slider with −/+ stepper buttons), `src/components/DepthSlider.tsx` (unit-aware depth input built on `SliderRow`) and `src/components/NumberField.tsx` (typed settings field that only commits in-range values) for new numeric inputs.
 - **Responsivity:** The UI follows a mobile-first design pattern using a card-based layout.
 
 ### Technical Standards
@@ -57,7 +58,7 @@ Run `npm test` and `npm run lint` before considering a change done; `npm run bui
 ## Deployment Details
 - **GitHub Pages:** Deployed at `https://<user>.github.io/rb2000-web/`.
 - **Vite Base:** The `base` config in `vite.config.ts` must be set to `/rb2000-web/`.
-- **CI/CD:** The `.github/workflows/deploy.yml` handles automatic builds and artifact uploads from the repository root.
+- **CI/CD:** The `.github/workflows/deploy.yml` lints, tests, builds and deploys on every push to `main`; `.github/workflows/ci.yml` runs the same lint/test/build checks on pull requests.
 
 ---
 

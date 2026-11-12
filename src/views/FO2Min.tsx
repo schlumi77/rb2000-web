@@ -1,14 +1,14 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useDiveInputs } from '../context/DiveInputsContext';
 import { calculateFO2Min, calculatePAmb, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 
 const FO2Min: React.FC = () => {
   const { params, units } = useSettings();
-  const [depth, setDepth] = useState(21);
-  const [pO2MinTarget, setPO2MinTarget] = useState(21); // In percent (0.21)
+  const { depth, setDepth, pO2MinTarget, setPO2MinTarget } = useDiveInputs();
 
   const results = useMemo(() => {
     const targetPO2 = pO2MinTarget / 100;
