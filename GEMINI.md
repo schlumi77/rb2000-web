@@ -51,6 +51,7 @@ Run `npm test` and `npm run lint` before considering a change done; `npm run bui
 - **TypeScript:** Strict typing is required. Avoid `any`.
 - **Linting:** Adhere to the ESLint configuration. Fix all warnings before deployment.
 - **Units:** The system supports both Metric and Imperial units. Internal logic should stay in metric (meters, bar), with conversions handled in the UI layer (see `DepthSlider` for the pattern).
+- **Pressure:** `calculatePAmb` returns **absolute** pressure (`pSurf + dpdt·depth`), so results stay correct at altitude. Feet use the exact 0.3048 m/ft.
 - **Depth Limit:** The application supports depths up to **200m**.
 - **Styling:** Vanilla CSS with theme variables (`--primary-color`, `--card-bg`, etc. in `src/index.css`); support light and dark mode via `prefers-color-scheme`.
 - **Safety limits** (in `CONSTANTS`): pO₂ 0.16–1.60, gas density < 5.2 g/l. Values outside limits are shown with `--danger-color`. This is a diving-safety tool — be conservative with the calculation logic; when in doubt about a formula, ask rather than guess.

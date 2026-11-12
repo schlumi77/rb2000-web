@@ -23,7 +23,7 @@ const SettingsView: React.FC = () => {
   // range) is shown and edited in ata/ft, converting back to the canonical
   // value on commit.
   const dpdtToDisplay = (barPerM: number) =>
-    isMetric ? barPerM : Number(barPerMToAtaPerFt(barPerM).toFixed(4));
+    isMetric ? barPerM : Number(barPerMToAtaPerFt(barPerM).toFixed(5));
 
   return (
     <div>
@@ -106,7 +106,7 @@ const SettingsView: React.FC = () => {
           value={dpdtToDisplay(params.dpdt)}
           min={dpdtToDisplay(PARAM_LIMITS.dpdt.min)}
           max={dpdtToDisplay(PARAM_LIMITS.dpdt.max)}
-          step={isMetric ? '0.01' : '0.001'}
+          step={isMetric ? '0.01' : 'any'}
           ariaLabel={`Pressure gradient in ${isMetric ? 'bar per metre' : 'ata per foot'}`}
           onCommit={(dpdt) => updateParams({ dpdt: isMetric ? dpdt : ataPerFtToBarPerM(dpdt) })}
         />

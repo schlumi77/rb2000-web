@@ -34,6 +34,7 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 ## Conventions
 
 - **Units:** internal logic is always **metric** (metres, bar). Convert to/from Imperial (feet, ata) only in the UI layer — see `DepthSlider` for the pattern. The app supports both unit systems.
+- **Pressure:** `calculatePAmb` returns **absolute** pressure (`pSurf + dpdt·depth`), so results stay correct at altitude. Feet use the exact 0.3048 m/ft.
 - **Depth limit:** 200 m.
 - **TypeScript:** strict typing; avoid `any`.
 - **Styling:** vanilla CSS with theme variables (`--primary-color`, `--card-bg`, etc. in [`src/index.css`](src/index.css)); support light and dark mode via `prefers-color-scheme`. UI is card-based and mobile-first.

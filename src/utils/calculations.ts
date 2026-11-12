@@ -30,8 +30,8 @@ export type NumericParamKey = Exclude<keyof CalculationParams, 'algorithm'>;
 /**
  * Accepted range for each numeric parameter (canonical metric units). The
  * bounds are deliberately wide: they exist to keep degenerate values (zero,
- * negatives) out of the formulas, which divide by amv, ke, kr and pSurf — not
- * to judge what is physiologically realistic.
+ * negatives) out of the formulas, which divide by amv, ke, kr and the ambient
+ * pressure — not to judge what is physiologically realistic.
  */
 export const PARAM_LIMITS: Record<NumericParamKey, { min: number; max: number }> = {
   amv: { min: 1, max: 100 },
@@ -75,17 +75,20 @@ export const CONSTANTS = {
   PPO2_HIGH_LIMIT: 1.60,
   LIMIT_GAS_DENSITY: 5.2,
   PERCENT_CONVERSION: 100.0,
-  METER_FT_CONVERSION: 0.3,
+  METER_FT_CONVERSION: 0.3048, // metres per foot (exact)
   GAS_DENSITY_HE: 0.179,
   GAS_DENSITY_O2: 1.428,
   GAS_DENSITY_N2: 1.251,
 };
 
 /**
- * Calculates ambient pressure at a given depth.
+ * Calculates the absolute ambient pressure [bar] at a given depth: surface
+ * pressure plus the water column. It is deliberately not divided by pSurf, so
+ * at altitude (pSurf < 1) partial pressures and gas density come out in true
+ * absolute terms rather than as multiples of the local surface pressure.
  */
 export const calculatePAmb = (depth: number, pSurf: number, dpdt: number): number => {
-  const pAmb = (pSurf + dpdt * depth) / pSurf;
+  const pAmb = pSurf + dpdt * depth;
   return Math.max(0, pAmb);
 };
 
