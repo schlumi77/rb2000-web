@@ -32,6 +32,43 @@ describe('RBCalculations Port', () => {
     it('should never return less than 0', () => {
       expect(calculatePAmb(-100, 1.0, 0.1)).toBe(0);
     });
+
+    it('should return absolute pressure at altitude, not a multiple of surface pressure', () => {
+      // Mountain lake with 0.8 bar at the surface.
+      expect(calculatePAmb(0, 0.8, 0.1)).toBeCloseTo(0.8, 10);
+      // at 10m: 0.8 + 0.1 * 10 = 1.8 bar absolute
+      expect(calculatePAmb(10, 0.8, 0.1)).toBeCloseTo(1.8, 10);
+    });
+  });
+
+  describe('altitude (pSurf below 1 bar)', () => {
+    const altitudeParams: CalculationParams = { ...defaultParams, pSurf: 0.8 };
+
+    it('should calculate fO2GG from absolute pressure', () => {
+      // Depth 10m, fO2Mix 50%
+      // pAmb = 1.8, VO2 = 0.8, Q_dump = 20 * 0.1 * 1.8 = 3.6
+      // fO2GG = (0.5 * (3.6 + 0.8) - 0.8) / 3.6 = 1.4 / 3.6 ≈ 0.388889
+      expect(calculateFO2GG(10, 0.5, altitudeParams)).toBeCloseTo(0.388889, 5);
+    });
+
+    it('should calculate fO2Min from absolute pressure', () => {
+      // Depth 10m, pO2Min 0.21
+      // fO2min = (((0.21 * 3.6) / 1.8) + 0.8) / (3.6 + 0.8) = 1.22 / 4.4 ≈ 0.277273
+      expect(calculateFO2Min(10, 0.21, altitudeParams)).toBeCloseTo(0.277273, 5);
+    });
+
+    it('should calculate gas density from absolute pressure', () => {
+      // Air at the surface of a 0.8 bar lake: 1.28817 * 0.8 = 1.030536
+      expect(calculateGasDensity(0, 0.21, 0, 0.8, 0.1)).toBeCloseTo(1.030536, 5);
+    });
+
+    it('should simulate towards the absolute-pressure steady state', () => {
+      const sim = simulateLoopGas(10, 0.5, 0.21, altitudeParams);
+      const steady = calculateFO2GG(10, 0.5, altitudeParams);
+      expect(sim.fO2[sim.fO2.length - 1]).toBeCloseTo(steady, 3);
+      // pO2 is the loop fraction times absolute pressure (1.8 bar).
+      expect(sim.pO2[0]).toBeCloseTo(0.21 * 1.8, 10);
+    });
   });
 
   describe('calculateFO2GG', () => {
@@ -173,16 +210,19 @@ describe('RBCalculations Port', () => {
 
   describe('Unit Conversions', () => {
     it('should convert meters to feet correctly', () => {
-      expect(mToFt(10)).toBeCloseTo(33.333, 3);
+      // 1 ft = 0.3048 m exactly
+      expect(mToFt(10)).toBeCloseTo(32.8084, 4);
+      expect(mToFt(200)).toBeCloseTo(656.168, 3);
     });
 
     it('should convert feet to meters correctly', () => {
-      expect(ftToM(33.333333333333336)).toBeCloseTo(10, 5);
+      expect(ftToM(100)).toBeCloseTo(30.48, 10);
+      expect(ftToM(mToFt(10))).toBeCloseTo(10, 10);
     });
 
     it('should convert the pressure gradient bar/m to ata/ft', () => {
-      // 0.1 bar/m * 0.3 m/ft = 0.03 ata/ft
-      expect(barPerMToAtaPerFt(0.1)).toBeCloseTo(0.03, 5);
+      // 0.1 bar/m * 0.3048 m/ft = 0.03048 ata/ft
+      expect(barPerMToAtaPerFt(0.1)).toBeCloseTo(0.03048, 6);
     });
 
     it('should round-trip the pressure gradient conversion', () => {

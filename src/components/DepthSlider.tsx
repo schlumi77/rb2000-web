@@ -24,17 +24,22 @@ const DepthSlider: React.FC<DepthSliderProps> = ({ depth, onChange }) => {
   const isMetric = units === 'Metric';
 
   const unit = isMetric ? 'm' : 'ft';
-  const displayValue = isMetric ? depth : Math.round(mToFt(depth));
-  const max = isMetric ? MAX_DEPTH_M : Math.round(mToFt(MAX_DEPTH_M));
-  const step = isMetric ? 1 : 5;
+  // The slider moves in whole metres or whole feet. A depth picked in one unit
+  // is generally not a whole number in the other (70 ft = 21.336 m), so the
+  // metric readout keeps one decimal to stay close to the depth actually used
+  // in the calculations.
+  const sliderValue = Math.round(isMetric ? depth : mToFt(depth));
+  const displayValue = isMetric ? Number(depth.toFixed(1)) : sliderValue;
+  // Floor so the deepest selectable foot never exceeds MAX_DEPTH_M.
+  const max = isMetric ? MAX_DEPTH_M : Math.floor(mToFt(MAX_DEPTH_M));
 
   return (
     <SliderRow
       label="Depth"
-      value={displayValue}
+      value={sliderValue}
+      displayValue={displayValue}
       min={0}
       max={max}
-      step={step}
       unit={unit}
       ariaLabel={`Depth in ${unit}`}
       onChange={(value) => onChange(isMetric ? value : ftToM(value))}
