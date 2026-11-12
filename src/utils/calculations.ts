@@ -25,6 +25,51 @@ export const DEFAULT_PARAMS: CalculationParams = {
   algorithm: 'Standard',
 };
 
+export type NumericParamKey = Exclude<keyof CalculationParams, 'algorithm'>;
+
+/**
+ * Accepted range for each numeric parameter (canonical metric units). The
+ * bounds are deliberately wide: they exist to keep degenerate values (zero,
+ * negatives) out of the formulas, which divide by amv, ke, kr and pSurf — not
+ * to judge what is physiologically realistic.
+ */
+export const PARAM_LIMITS: Record<NumericParamKey, { min: number; max: number }> = {
+  amv: { min: 1, max: 100 },
+  ke: { min: 1, max: 100 },
+  kr: { min: 1, max: 100 },
+  v: { min: 1, max: 50 },
+  freq: { min: 1, max: 60 },
+  pSurf: { min: 0.5, max: 1.2 },
+  dpdt: { min: 0.05, max: 0.2 },
+};
+
+/**
+ * Returns a complete, in-range parameter set. Numeric values outside
+ * PARAM_LIMITS are clamped; anything that is not a finite number (or not a
+ * known algorithm) is replaced by the corresponding `fallback` value. Used on
+ * every settings load and update so the formulas never see invalid input.
+ */
+export const sanitizeParams = (
+  raw: Partial<Record<keyof CalculationParams, unknown>>,
+  fallback: CalculationParams = DEFAULT_PARAMS
+): CalculationParams => {
+  const result: CalculationParams = { ...fallback };
+
+  for (const key of Object.keys(PARAM_LIMITS) as NumericParamKey[]) {
+    const value = raw[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const { min, max } = PARAM_LIMITS[key];
+      result[key] = Math.min(max, Math.max(min, value));
+    }
+  }
+
+  if (raw.algorithm === 'Standard' || raw.algorithm === 'Aspacher') {
+    result.algorithm = raw.algorithm;
+  }
+
+  return result;
+};
+
 export const CONSTANTS = {
   PPO2_LOW_LIMIT: 0.16,
   PPO2_HIGH_LIMIT: 1.60,

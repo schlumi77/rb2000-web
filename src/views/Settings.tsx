@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { barPerMToAtaPerFt, ataPerFtToBarPerM } from '../utils/calculations';
-import type { Algorithm, CalculationParams } from '../utils/calculations';
+import { barPerMToAtaPerFt, ataPerFtToBarPerM, PARAM_LIMITS } from '../utils/calculations';
+import type { Algorithm } from '../utils/calculations';
+import NumberField from '../components/NumberField';
 import About from './About';
 
 const SettingsView: React.FC = () => {
@@ -18,24 +19,11 @@ const SettingsView: React.FC = () => {
     updateUnits(units === 'Metric' ? 'Imperial' : 'Metric');
   };
 
-  // dpdt is stored canonically in bar/m. In Imperial mode it is shown and
-  // edited in ata/ft, converting back to the canonical value on change.
-  const dpdtDisplay = isMetric ? params.dpdt : Number(barPerMToAtaPerFt(params.dpdt).toFixed(4));
-  const handleDpdtChange = (raw: string) => {
-    const value = parseFloat(raw);
-    if (!Number.isFinite(value)) return;
-    updateParams({ dpdt: isMetric ? value : ataPerFtToBarPerM(value) });
-  };
-
-  // Only commit finite numbers. Clearing a field (parseFloat("") === NaN) or
-  // typing an invalid value must never poison params, since NaN propagates
-  // through every safety calculation and is persisted to localStorage.
-  const handleNumChange = (key: keyof CalculationParams, raw: string) => {
-    const value = parseFloat(raw);
-    if (Number.isFinite(value)) {
-      updateParams({ [key]: value } as Partial<CalculationParams>);
-    }
-  };
+  // dpdt is stored canonically in bar/m. In Imperial mode it (and its allowed
+  // range) is shown and edited in ata/ft, converting back to the canonical
+  // value on commit.
+  const dpdtToDisplay = (barPerM: number) =>
+    isMetric ? barPerM : Number(barPerMToAtaPerFt(barPerM).toFixed(4));
 
   return (
     <div>
@@ -62,79 +50,66 @@ const SettingsView: React.FC = () => {
 
       <h3 className="section-title">Breathing Parameters</h3>
       <div className="card">
-        <div className="row">
-          <span className="label">RMV [l/min]</span>
-          <input
-            type="number"
-            value={params.amv}
-            aria-label="RMV in litres per minute"
-            onChange={(e) => handleNumChange('amv', e.target.value)}
-          />
-        </div>
-        <div className="row">
-          <span className="label">Ke</span>
-          <input
-            type="number"
-            value={params.ke}
-            aria-label="Ke respiratory factor"
-            onChange={(e) => handleNumChange('ke', e.target.value)}
-          />
-        </div>
+        <NumberField
+          label="RMV [l/min]"
+          value={params.amv}
+          {...PARAM_LIMITS.amv}
+          ariaLabel="RMV in litres per minute"
+          onCommit={(amv) => updateParams({ amv })}
+        />
+        <NumberField
+          label="Ke"
+          value={params.ke}
+          {...PARAM_LIMITS.ke}
+          ariaLabel="Ke respiratory factor"
+          onCommit={(ke) => updateParams({ ke })}
+        />
         <div className="row">
           <span className="label">VO2 [l/min]</span>
           <span className="value">{(params.amv / params.ke).toFixed(1)}</span>
         </div>
-        <div className="row">
-          <span className="label">Freq [1/min]</span>
-          <input
-            type="number"
-            value={params.freq}
-            aria-label="Breathing frequency per minute"
-            onChange={(e) => handleNumChange('freq', e.target.value)}
-          />
-        </div>
+        <NumberField
+          label="Freq [1/min]"
+          value={params.freq}
+          {...PARAM_LIMITS.freq}
+          ariaLabel="Breathing frequency per minute"
+          onCommit={(freq) => updateParams({ freq })}
+        />
       </div>
 
       <h3 className="section-title">System Parameters</h3>
       <div className="card">
-        <div className="row">
-          <span className="label">Kr [%]</span>
-          <input
-            type="number"
-            value={params.kr}
-            aria-label="Kr gas leakage in percent"
-            onChange={(e) => handleNumChange('kr', e.target.value)}
-          />
-        </div>
-        <div className="row">
-          <span className="label">V [l]</span>
-          <input
-            type="number"
-            value={params.v}
-            aria-label="System volume in litres"
-            onChange={(e) => handleNumChange('v', e.target.value)}
-          />
-        </div>
-        <div className="row">
-          <span className="label">p_surf [{isMetric ? 'bar' : 'ata'}]</span>
-          <input
-            type="number"
-            step="0.01"
-            value={params.pSurf}
-            aria-label={`Surface pressure in ${isMetric ? 'bar' : 'ata'}`}
-            onChange={(e) => handleNumChange('pSurf', e.target.value)}
-          />
-        </div>
-        <div className="row">
-          <span className="label">dpdt [{isMetric ? 'bar/m' : 'ata/ft'}]</span>
-          <input
-            type="number"
-            step={isMetric ? '0.01' : '0.001'}
-            value={dpdtDisplay}
-            aria-label={`Pressure gradient in ${isMetric ? 'bar per metre' : 'ata per foot'}`}
-            onChange={(e) => handleDpdtChange(e.target.value)}
-          />
-        </div>
+        <NumberField
+          label="Kr [%]"
+          value={params.kr}
+          {...PARAM_LIMITS.kr}
+          ariaLabel="Kr gas leakage in percent"
+          onCommit={(kr) => updateParams({ kr })}
+        />
+        <NumberField
+          label="V [l]"
+          value={params.v}
+          {...PARAM_LIMITS.v}
+          ariaLabel="System volume in litres"
+          onCommit={(v) => updateParams({ v })}
+        />
+        <NumberField
+          label={`p_surf [${isMetric ? 'bar' : 'ata'}]`}
+          value={params.pSurf}
+          {...PARAM_LIMITS.pSurf}
+          step="0.01"
+          ariaLabel={`Surface pressure in ${isMetric ? 'bar' : 'ata'}`}
+          onCommit={(pSurf) => updateParams({ pSurf })}
+        />
+        <NumberField
+          label={`dpdt [${isMetric ? 'bar/m' : 'ata/ft'}]`}
+          value={dpdtToDisplay(params.dpdt)}
+          min={dpdtToDisplay(PARAM_LIMITS.dpdt.min)}
+          max={dpdtToDisplay(PARAM_LIMITS.dpdt.max)}
+          step={isMetric ? '0.01' : '0.001'}
+          ariaLabel={`Pressure gradient in ${isMetric ? 'bar per metre' : 'ata per foot'}`}
+          onCommit={(dpdt) => updateParams({ dpdt: isMetric ? dpdt : ataPerFtToBarPerM(dpdt) })}
+        />
         <div className="row">
           <span className="label">Algorithm</span>
           <select

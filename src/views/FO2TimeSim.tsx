@@ -1,6 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useDiveInputs } from '../context/DiveInputsContext';
 import { simulateLoopGas, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
@@ -8,9 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const FO2TimeSim: React.FC = () => {
   const { params, units } = useSettings();
-  const [depth, setDepth] = useState(21);
-  const [fO2Mix, setFO2Mix] = useState(50);
-  const [fO2Start, setFO2Start] = useState(21);
+  const { depth, setDepth, fO2Mix, setFO2Mix, fO2Start, setFO2Start } = useDiveInputs();
 
   const simulation = useMemo(() => {
     const result = simulateLoopGas(depth, fO2Mix / 100, fO2Start / 100, params);

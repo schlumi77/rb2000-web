@@ -1,15 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useDiveInputs } from '../context/DiveInputsContext';
 import { calculateGasDensity, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 
 const GasDensity: React.FC = () => {
   const { params } = useSettings();
-  const [depth, setDepth] = useState(45);
-  const [fO2, setFO2] = useState(21);
-  const [fHe, setFHe] = useState(35);
+  const {
+    depth, setDepth,
+    densityFO2: fO2, setDensityFO2: setFO2,
+    densityFHe: fHe, setDensityFHe: setFHe,
+  } = useDiveInputs();
 
   const handleFO2Change = (val: number) => {
     setFO2(val);

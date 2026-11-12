@@ -1,14 +1,14 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useDiveInputs } from '../context/DiveInputsContext';
 import { calculateFO2GG, calculatePAmb, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 
 const FO2SteadyState: React.FC = () => {
   const { params, units } = useSettings();
-  const [depth, setDepth] = useState(21);
-  const [fO2Mix, setFO2Mix] = useState(50);
+  const { depth, setDepth, fO2Mix, setFO2Mix } = useDiveInputs();
 
   const results = useMemo(() => {
     const fO2GG = calculateFO2GG(depth, fO2Mix / 100, params);

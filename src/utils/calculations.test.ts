@@ -11,6 +11,8 @@ import {
   ftToM,
   barPerMToAtaPerFt,
   ataPerFtToBarPerM,
+  sanitizeParams,
+  PARAM_LIMITS,
   DEFAULT_PARAMS
 } from './calculations';
 
@@ -120,6 +122,52 @@ describe('RBCalculations Port', () => {
       expect(result.time.length).toBe(0);
       expect(result.fO2.length).toBe(0);
       expect(result.pO2.length).toBe(0);
+    });
+  });
+
+  describe('sanitizeParams', () => {
+    it('should keep the defaults unchanged (defaults are within limits)', () => {
+      expect(sanitizeParams(DEFAULT_PARAMS)).toEqual(DEFAULT_PARAMS);
+    });
+
+    it('should clamp out-of-range values into PARAM_LIMITS', () => {
+      const result = sanitizeParams({ ...DEFAULT_PARAMS, amv: 2015, ke: 0, kr: -10, pSurf: 0 });
+      expect(result.amv).toBe(PARAM_LIMITS.amv.max);
+      expect(result.ke).toBe(PARAM_LIMITS.ke.min);
+      expect(result.kr).toBe(PARAM_LIMITS.kr.min);
+      expect(result.pSurf).toBe(PARAM_LIMITS.pSurf.min);
+    });
+
+    it('should replace non-finite, non-numeric and missing values with the fallback', () => {
+      const result = sanitizeParams({ amv: NaN, ke: Infinity, kr: '10', v: null, algorithm: 'Bogus' });
+      expect(result).toEqual(DEFAULT_PARAMS);
+    });
+
+    it('should fall back to the supplied previous params rather than the defaults', () => {
+      const previous: CalculationParams = { ...DEFAULT_PARAMS, amv: 30, algorithm: 'Aspacher' };
+      const result = sanitizeParams({ ...previous, amv: NaN, ke: 20 }, previous);
+      expect(result.amv).toBe(30);
+      expect(result.ke).toBe(20);
+      expect(result.algorithm).toBe('Aspacher');
+    });
+
+    it('should yield finite results from every formula at the limits', () => {
+      // Whatever is stored or typed, sanitized params must never produce NaN.
+      for (const bound of ['min', 'max'] as const) {
+        const params = sanitizeParams({
+          amv: PARAM_LIMITS.amv[bound],
+          ke: PARAM_LIMITS.ke[bound],
+          kr: PARAM_LIMITS.kr[bound],
+          v: PARAM_LIMITS.v[bound],
+          freq: PARAM_LIMITS.freq[bound],
+          pSurf: PARAM_LIMITS.pSurf[bound],
+          dpdt: PARAM_LIMITS.dpdt[bound],
+        });
+        expect(Number.isFinite(calculateFO2GG(21, 0.5, params))).toBe(true);
+        expect(Number.isFinite(calculateFO2Min(21, 0.21, params))).toBe(true);
+        const sim = simulateLoopGas(21, 0.5, 0.21, params);
+        expect(sim.fO2.every(Number.isFinite)).toBe(true);
+      }
     });
   });
 

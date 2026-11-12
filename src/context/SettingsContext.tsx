@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { DEFAULT_PARAMS } from '../utils/calculations';
+import { DEFAULT_PARAMS, sanitizeParams } from '../utils/calculations';
 import type { CalculationParams, Units } from '../utils/calculations';
 
 interface SettingsContextType {
@@ -15,15 +15,17 @@ const DEFAULT_UNITS: Units = 'Metric';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-// Defensively load persisted params: tolerate corrupt JSON and backfill any
-// missing keys from the defaults (so older/partial stored shapes can't leave
-// the app with undefined parameters or fail to mount on a parse error).
+// Defensively load persisted params: tolerate corrupt JSON, backfill any
+// missing keys from the defaults and pull out-of-range values back into
+// PARAM_LIMITS (so older/partial/invalid stored shapes can't leave the app
+// with unusable parameters or fail to mount on a parse error).
 const loadParams = (): CalculationParams => {
   try {
     const saved = localStorage.getItem('rb2000_params');
     if (!saved) return DEFAULT_PARAMS;
-    const parsed = JSON.parse(saved) as Partial<CalculationParams>;
-    return { ...DEFAULT_PARAMS, ...parsed };
+    const parsed: unknown = JSON.parse(saved);
+    if (typeof parsed !== 'object' || parsed === null) return DEFAULT_PARAMS;
+    return sanitizeParams(parsed);
   } catch {
     return DEFAULT_PARAMS;
   }
@@ -48,7 +50,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [units]);
 
   const updateParams = (newParams: Partial<CalculationParams>) => {
-    setParams(prev => ({ ...prev, ...newParams }));
+    // Invalid values fall back to the previous (known-good) value.
+    setParams(prev => sanitizeParams({ ...prev, ...newParams }, prev));
   };
 
   const updateUnits = (newUnits: Units) => {

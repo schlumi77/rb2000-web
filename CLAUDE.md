@@ -26,9 +26,10 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 
 - **All math lives in [`src/utils/calculations.ts`](src/utils/calculations.ts)** and must stay there — pure, side-effect-free functions with no React/DOM dependencies. It is the single source of truth for constants (`CONSTANTS`), defaults (`DEFAULT_PARAMS`), and the two algorithm variants (`Standard` and `Aspacher`).
 - Every calculation function is covered by [`src/utils/calculations.test.ts`](src/utils/calculations.test.ts). Add/adjust tests whenever you touch the math.
-- **State** is React Context — [`src/context/SettingsContext.tsx`](src/context/SettingsContext.tsx) holds units and physiological/system params (`amv`, `ke`, `kr`, `v`, `freq`, `pSurf`, `dpdt`, `algorithm`) and persists them to `localStorage`.
+- **State** is React Context — [`src/context/SettingsContext.tsx`](src/context/SettingsContext.tsx) holds units and physiological/system params (`amv`, `ke`, `kr`, `v`, `freq`, `pSurf`, `dpdt`, `algorithm`) and persists them to `localStorage`. Every load and update passes through `sanitizeParams`, which keeps params inside `PARAM_LIMITS` (both in `calculations.ts`) so the formulas never see zero, negative or non-finite input.
+- [`src/context/DiveInputsContext.tsx`](src/context/DiveInputsContext.tsx) holds the calculator inputs (depth, supply fO2, etc.) above the views, so they survive tab switches; depth is shared by all views. Not persisted. Put new view inputs here rather than in view-local `useState`.
 - **Views** live in `src/views/` and are switched by a simple `currentView` state in [`src/App.tsx`](src/App.tsx) (no router): `FO2SteadyState`, `FO2TimeSim` (lazy-loaded — pulls in Recharts), `FO2Min`, `GasDensity`, `Settings`. Navigation is [`src/components/Navigation.tsx`](src/components/Navigation.tsx).
-- **Shared input UI** is in `src/components/`: [`SliderRow`](src/components/SliderRow.tsx) (labelled slider with −/+ stepper buttons) and [`DepthSlider`](src/components/DepthSlider.tsx) (unit-aware depth input built on `SliderRow`). Reuse these for new numeric inputs.
+- **Shared input UI** is in `src/components/`: [`SliderRow`](src/components/SliderRow.tsx) (labelled slider with −/+ stepper buttons) and [`DepthSlider`](src/components/DepthSlider.tsx) (unit-aware depth input built on `SliderRow`), and [`NumberField`](src/components/NumberField.tsx) (typed settings field that only commits in-range values). Reuse these for new numeric inputs.
 
 ## Conventions
 
@@ -40,7 +41,7 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 
 ## Deployment
 
-`.github/workflows/deploy.yml` builds and deploys to GitHub Pages on every push to `main`. The Vite `base` in [`vite.config.ts`](vite.config.ts) must stay `/rb2000-web/` for asset paths to resolve on the Pages sub-path. The app is also a PWA (installable, with an `apple-touch-icon` for iOS home-screen).
+`.github/workflows/deploy.yml` lints, tests, builds and deploys to GitHub Pages on every push to `main`; `.github/workflows/ci.yml` runs the same lint/test/build checks on pull requests. The Vite `base` in [`vite.config.ts`](vite.config.ts) must stay `/rb2000-web/` for asset paths to resolve on the Pages sub-path. The app is also a PWA (installable, with an `apple-touch-icon` for iOS home-screen).
 
 ## Notes
 

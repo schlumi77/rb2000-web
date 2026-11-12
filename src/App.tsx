@@ -2,6 +2,7 @@
 import { useState, lazy, Suspense } from 'react'
 import './App.css'
 import { SettingsProvider } from './context/SettingsContext'
+import { DiveInputsProvider } from './context/DiveInputsContext'
 import Navigation from './components/Navigation'
 import type { ViewType } from './components/Navigation'
 import SettingsView from './views/Settings'
@@ -45,9 +46,11 @@ function App() {
           {getTitle()}
         </header>
         <main className="container">
-          <Suspense fallback={<div className="section-title">Loading…</div>}>
-            {renderView()}
-          </Suspense>
+          <DiveInputsProvider>
+            <Suspense fallback={<div className="section-title">Loading…</div>}>
+              {renderView()}
+            </Suspense>
+          </DiveInputsProvider>
         </main>
         <Navigation currentView={currentView} onViewChange={setCurrentView} />
       </div>
