@@ -10,7 +10,7 @@ Guidance for Claude Code (and other AI agents) working in this repository.
 
 ```bash
 npm run dev      # start Vite dev server (default port 5173)
-npm test         # run the Vitest suite (calculation logic)
+npm test         # run the Vitest suite (calculation logic + component tests)
 npm run lint     # ESLint — keep clean, fix all warnings
 npm run build    # tsc -b && vite build (type-check + production build)
 npm run preview  # preview the production build locally
@@ -26,6 +26,7 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 
 - **All math lives in [`src/utils/calculations.ts`](src/utils/calculations.ts)** and must stay there — pure, side-effect-free functions with no React/DOM dependencies. It is the single source of truth for constants (`CONSTANTS`), defaults (`DEFAULT_PARAMS`), and the two algorithm variants (`Standard` and `Aspacher`).
 - Every calculation function is covered by [`src/utils/calculations.test.ts`](src/utils/calculations.test.ts). Add/adjust tests whenever you touch the math.
+- **Component tests** use React Testing Library in jsdom and sit next to the file they test (`*.test.tsx`); [`src/App.test.tsx`](src/App.test.tsx) covers behaviour that spans views. Setup is in [`src/test/setup.ts`](src/test/setup.ts), which clears `localStorage` after each test. Add a test with every UI bug fix so the bug can't return unnoticed.
 - **State** is React Context — [`src/context/SettingsContext.tsx`](src/context/SettingsContext.tsx) holds units and physiological/system params (`amv`, `ke`, `kr`, `v`, `freq`, `pSurf`, `dpdt`, `algorithm`) and persists them to `localStorage`. Every load and update passes through `sanitizeParams`, which keeps params inside `PARAM_LIMITS` (both in `calculations.ts`) so the formulas never see zero, negative or non-finite input.
 - [`src/context/DiveInputsContext.tsx`](src/context/DiveInputsContext.tsx) holds the calculator inputs (depth, supply fO2, etc.) above the views, so they survive tab switches; depth is shared by all views. Not persisted. Put new view inputs here rather than in view-local `useState`.
 - **Views** live in `src/views/` and are switched by a simple `currentView` state in [`src/App.tsx`](src/App.tsx) (no router): `FO2SteadyState`, `FO2TimeSim` (lazy-loaded — pulls in Recharts), `FO2Min`, `GasDensity`, `Settings`. Navigation is [`src/components/Navigation.tsx`](src/components/Navigation.tsx).
