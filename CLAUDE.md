@@ -40,6 +40,7 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 - **TypeScript:** strict typing; avoid `any`.
 - **Styling:** vanilla CSS with theme variables (`--primary-color`, `--card-bg`, etc. in [`src/index.css`](src/index.css)); support light and dark mode via `prefers-color-scheme`. UI is card-based and mobile-first.
 - **Safety limits** (in `CONSTANTS`): pO₂ 0.16–1.60, gas density < 5.2 g/l. Values outside limits are shown with `--danger-color`.
+- **Dependency overrides:** `package.json` `overrides` force patched versions of two build-time packages to clear security advisories: `glob` inside `workbox-build` (used by `vite-plugin-pwa`) and `minimatch` inside `@typescript-eslint/typescript-estree`. Keep them scoped (ESLint itself needs minimatch 3). Remove an override once its parent package ships the fix itself, and re-check that the build still precaches every file. The remaining `deepmerge` advisory has no patched release yet.
 
 ## Deployment
 
