@@ -2,7 +2,8 @@
 import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useDiveInputs } from '../context/DiveInputsContext';
-import { simulateLoopGas, calculateFO2GG, calculatePAmb, assessPO2Limits, CONSTANTS } from '../utils/calculations';
+import { simulateLoopGas, sampleEveryMinute, calculateFO2GG, calculatePAmb, assessPO2Limits, CONSTANTS } from '../utils/calculations';
+import { valueAxisTicks, minuteAxisTicks } from '../utils/chartAxis';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 import SimSummary from '../components/SimSummary';
@@ -24,17 +25,22 @@ const FO2TimeSim: React.FC = () => {
       limits: assessPO2Limits(result),
     };
 
-    // Transform for Recharts
-    const chartData = result.time.map((t, i) => ({
+    // One point per whole minute keeps the chart and table readable.
+    const sampled = sampleEveryMinute(result);
+    const chartData = sampled.time.map((t, i) => ({
       time: t,
-      fO2: result.fO2[i] * 100,
-      pO2: result.pO2[i]
-    })).filter((_, i) => i % params.freq === 0 || i === result.time.length - 1); // Sample every minute for the graph/table to keep it clean
+      fO2: sampled.fO2[i] * 100,
+      pO2: sampled.pO2[i],
+    }));
 
     return { simulation: chartData, summary };
   }, [depth, fO2Mix, fO2Start, params]);
 
   const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
+  // Fixed ticks keep the axis labels round and the 1.60 limit line on the
+  // chart even when the loop pO2 goes far above it.
+  const yTicks = valueAxisTicks(Math.max(0, ...simulation.map((d) => d.pO2)), CONSTANTS.PPO2_HIGH_LIMIT);
+  const xTicks = minuteAxisTicks(simulation.length > 0 ? simulation[simulation.length - 1].time : 0);
 
   return (
     <div className="sim-view">
@@ -71,13 +77,18 @@ const FO2TimeSim: React.FC = () => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={simulation}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis 
-              dataKey="time" 
-              label={{ value: 'min', position: 'insideBottomRight', offset: -5 }} 
+            <XAxis
+              dataKey="time"
+              type="number"
+              domain={[0, 'dataMax']}
+              ticks={xTicks}
+              label={{ value: 'min', position: 'insideBottomRight', offset: -5 }}
               tick={{ fontSize: 12 }}
             />
-            <YAxis 
-              domain={[0, 1.6]} 
+            <YAxis
+              domain={[0, yTicks[yTicks.length - 1]]}
+              ticks={yTicks}
+              tickFormatter={(v: number) => v.toFixed(1)}
               label={{ value: pressureUnit, angle: -90, position: 'insideLeft' }}
               tick={{ fontSize: 12 }}
             />
