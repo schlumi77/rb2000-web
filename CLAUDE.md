@@ -35,11 +35,11 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 ## Conventions
 
 - **Units:** internal logic is always **metric** (metres, bar). Convert to/from Imperial (feet, ata) only in the UI layer — see `DepthSlider` for the pattern. The app supports both unit systems.
-- **Pressure:** `calculatePAmb` returns **absolute** pressure (`pSurf + dpdt·depth`), so results stay correct at altitude. Feet use the exact 0.3048 m/ft.
+- **Pressure:** `calculatePAmb` returns **absolute** pressure (`pSurf + dpdt·depth`), so results stay correct at altitude. Feet use the exact 0.3048 m/ft; ata uses the exact 1.01325 bar/atm. Show pressures through `toDisplayPressure`/`pressureUnit` and convert input back with `fromDisplayPressure` (all in `calculations.ts`).
 - **Depth limit:** 200 m.
 - **TypeScript:** strict typing; avoid `any`.
 - **Styling:** vanilla CSS with theme variables (`--primary-color`, `--card-bg`, etc. in [`src/index.css`](src/index.css)); support light and dark mode via `prefers-color-scheme`. UI is card-based and mobile-first.
-- **Safety limits** (in `CONSTANTS`): pO₂ 0.16–1.60, gas density < 5.2 g/l. Values outside limits are shown with `--danger-color`.
+- **Safety limits** (in `CONSTANTS`): pO₂ 0.16–1.60 **bar**, gas density < 5.2 g/l. Values outside limits are shown with `--danger-color`. The pO₂ limits are always checked against the bar value, never the displayed one, so a dive is flagged the same in both unit systems (in Imperial they display as 0.158–1.579 ata).
 - **Dependency overrides:** `package.json` `overrides` force patched versions of two build-time packages to clear security advisories: `glob` inside `workbox-build` (used by `vite-plugin-pwa`) and `minimatch` inside `@typescript-eslint/typescript-estree`. Keep them scoped (ESLint itself needs minimatch 3). Remove an override once its parent package ships the fix itself, and re-check that the build still precaches every file. The remaining `deepmerge` advisory has no patched release yet.
 
 ## Deployment

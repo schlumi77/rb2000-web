@@ -2,7 +2,14 @@
 import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useDiveInputs } from '../context/DiveInputsContext';
-import { calculateFO2Min, calculatePAmb, CONSTANTS } from '../utils/calculations';
+import {
+  calculateFO2Min,
+  calculatePAmb,
+  toDisplayPressure,
+  fromDisplayPressure,
+  pressureUnit as unitFor,
+  CONSTANTS,
+} from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 
@@ -23,7 +30,21 @@ const FO2Min: React.FC = () => {
     };
   }, [depth, pO2MinTarget, params]);
 
-  const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
+  // Results and limit checks are in bar; only the display converts to ata.
+  const pressureUnit = unitFor(units);
+
+  // The target is stored in hundredths of a bar. The slider moves in whole
+  // hundredths of the displayed unit (bar or ata), so a target picked in one
+  // unit is generally not a whole hundredth in the other (0.21 ata = 0.2128
+  // bar); the readout then shows a third decimal to stay close to the value
+  // actually used. Conversions are linear, so they apply to hundredths as-is.
+  const targetDisplay = toDisplayPressure(pO2MinTarget, units);
+  const sliderValue = Math.round(targetDisplay);
+  const isWholeHundredth = Math.abs(targetDisplay - sliderValue) < 1e-6;
+  const targetText = (targetDisplay / 100).toFixed(isWholeHundredth ? 2 : 3);
+  // Keep the selectable range inside the pO2 limits (checked in bar).
+  const sliderMin = Math.ceil(toDisplayPressure(CONSTANTS.PPO2_LOW_LIMIT * 100, units) - 1e-9);
+  const sliderMax = Math.floor(toDisplayPressure(CONSTANTS.PPO2_HIGH_LIMIT * 100, units) + 1e-9);
 
   return (
     <div>
@@ -33,13 +54,13 @@ const FO2Min: React.FC = () => {
 
         <SliderRow
           label="Target pO2"
-          value={pO2MinTarget}
-          min={16}
-          max={160}
+          value={sliderValue}
+          min={sliderMin}
+          max={sliderMax}
           unit={pressureUnit}
-          displayValue={(pO2MinTarget / 100).toFixed(2)}
+          displayValue={targetText}
           ariaLabel="Target pO2"
-          onChange={setPO2MinTarget}
+          onChange={(v) => setPO2MinTarget(fromDisplayPressure(v, units))}
         />
       </div>
 
@@ -56,7 +77,7 @@ const FO2Min: React.FC = () => {
         <div className="row">
           <span className="label">OC pO2 at Depth</span>
           <span className={`value ${results.isPPO2Safe ? '' : 'danger'}`} style={{ color: results.isPPO2Safe ? 'var(--safe-color)' : 'var(--danger-color)' }}>
-            {results.pO2OC.toFixed(3)} <span className="unit">{pressureUnit}</span>
+            {toDisplayPressure(results.pO2OC, units).toFixed(3)} <span className="unit">{pressureUnit}</span>
           </span>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useDiveInputs } from '../context/DiveInputsContext';
-import { calculateFO2GG, calculatePAmb, CONSTANTS } from '../utils/calculations';
+import { calculateFO2GG, calculatePAmb, toDisplayPressure, pressureUnit as unitFor, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
 
@@ -25,7 +25,9 @@ const FO2SteadyState: React.FC = () => {
     };
   }, [depth, fO2Mix, params]);
 
-  const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
+  // Results and limit checks are in bar; only the display converts to ata.
+  const pressureUnit = unitFor(units);
+  const show = (bar: number) => toDisplayPressure(bar, units).toFixed(3);
 
   return (
     <div>
@@ -53,7 +55,7 @@ const FO2SteadyState: React.FC = () => {
         <div className="row">
           <span className="label">Loop pO2</span>
           <span className={`value ${results.isPPO2Safe ? '' : 'danger'}`} style={{ color: results.isPPO2Safe ? 'var(--safe-color)' : 'var(--danger-color)' }}>
-            {results.pO2GG.toFixed(3)} <span className="unit">{pressureUnit}</span>
+            {show(results.pO2GG)} <span className="unit">{pressureUnit}</span>
           </span>
         </div>
       </div>
@@ -63,7 +65,7 @@ const FO2SteadyState: React.FC = () => {
         <div className="row">
           <span className="label">OC pO2</span>
           <span className={`value ${results.isPPO2OCSafe ? '' : 'danger'}`} style={{ color: results.isPPO2OCSafe ? 'var(--safe-color)' : 'var(--danger-color)' }}>
-            {results.pO2OC.toFixed(3)} <span className="unit">{pressureUnit}</span>
+            {show(results.pO2OC)} <span className="unit">{pressureUnit}</span>
           </span>
         </div>
       </div>

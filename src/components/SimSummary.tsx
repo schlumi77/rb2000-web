@@ -1,22 +1,19 @@
 import React from 'react';
-import { CONSTANTS } from '../utils/calculations';
-import type { PO2LimitAssessment } from '../utils/calculations';
+import { CONSTANTS, toDisplayPressure, pressureUnit } from '../utils/calculations';
+import type { PO2LimitAssessment, Units } from '../utils/calculations';
 
 interface SimSummaryProps {
   /** Steady-state loop fO2 in percent. */
   steadyFO2: number;
-  /** Steady-state loop pO2 in bar/ata. */
+  /** Steady-state loop pO2 in bar. */
   steadyPO2: number;
   /** How the simulated pO2 relates to the limits; null if nothing was simulated. */
   limits: PO2LimitAssessment | null;
-  pressureUnit: string;
+  /** Unit system for display; pO2 is shown in bar (Metric) or ata (Imperial). */
+  units: Units;
 }
 
 const formatTime = (minutes: number) => `${minutes.toFixed(1)} min`;
-const limitText = (side: 'low' | 'high') =>
-  side === 'high'
-    ? `Above ${CONSTANTS.PPO2_HIGH_LIMIT.toFixed(2)}`
-    : `Below ${CONSTANTS.PPO2_LOW_LIMIT.toFixed(2)}`;
 
 const SAFE = 'var(--safe-color)';
 const DANGER = 'var(--danger-color)';
@@ -24,9 +21,17 @@ const DANGER = 'var(--danger-color)';
 /**
  * Summary card for the loop simulation: where the loop gas ends up (steady
  * state) and whether, and when, its pO2 crosses the safety limits — so the
- * key numbers can be read without studying the chart.
+ * key numbers can be read without studying the chart. Limits are checked in
+ * bar; only the displayed values are converted.
  */
-const SimSummary: React.FC<SimSummaryProps> = ({ steadyFO2, steadyPO2, limits, pressureUnit }) => {
+const SimSummary: React.FC<SimSummaryProps> = ({ steadyFO2, steadyPO2, limits, units }) => {
+  const unit = pressureUnit(units);
+  const show = (bar: number, digits: number) => toDisplayPressure(bar, units).toFixed(digits);
+  const limitText = (side: 'low' | 'high') =>
+    side === 'high'
+      ? `Above ${show(CONSTANTS.PPO2_HIGH_LIMIT, 2)} ${unit}`
+      : `Below ${show(CONSTANTS.PPO2_LOW_LIMIT, 2)} ${unit}`;
+
   const steadySafe =
     steadyPO2 >= CONSTANTS.PPO2_LOW_LIMIT && steadyPO2 <= CONSTANTS.PPO2_HIGH_LIMIT;
 
@@ -48,8 +53,8 @@ const SimSummary: React.FC<SimSummaryProps> = ({ steadyFO2, steadyPO2, limits, p
       <div className="row">
         <span className="label">Steady-state loop pO2</span>
         <span className="value" style={{ color: steadySafe ? SAFE : DANGER }}>
-          {steadyPO2.toFixed(3)}
-          <span className="unit">{pressureUnit}</span>
+          {show(steadyPO2, 3)}
+          <span className="unit">{unit}</span>
         </span>
       </div>
       {status && (
