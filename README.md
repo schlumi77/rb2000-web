@@ -31,7 +31,7 @@ A modern, reactive web application for rebreather diving calculations, ported fr
 
 ### Prerequisites
 
-- Node.js (v20 or higher)
+- Node.js 24 or higher (22.22+ also works)
 - npm
 
 ### Installation
