@@ -2,18 +2,28 @@
 import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useDiveInputs } from '../context/DiveInputsContext';
-import { simulateLoopGas, CONSTANTS } from '../utils/calculations';
+import { simulateLoopGas, calculateFO2GG, calculatePAmb, assessPO2Limits, CONSTANTS } from '../utils/calculations';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
+import SimSummary from '../components/SimSummary';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 const FO2TimeSim: React.FC = () => {
   const { params, units } = useSettings();
   const { depth, setDepth, fO2Mix, setFO2Mix, fO2Start, setFO2Start } = useDiveInputs();
 
-  const simulation = useMemo(() => {
+  const { simulation, summary } = useMemo(() => {
     const result = simulateLoopGas(depth, fO2Mix / 100, fO2Start / 100, params);
-    
+
+    // The summary uses the full-resolution simulation (one step per breath),
+    // so crossing times aren't rounded to the per-minute chart samples.
+    const steadyFO2 = calculateFO2GG(depth, fO2Mix / 100, params);
+    const summary = {
+      steadyFO2: steadyFO2 * 100,
+      steadyPO2: steadyFO2 * calculatePAmb(depth, params.pSurf, params.dpdt),
+      limits: assessPO2Limits(result),
+    };
+
     // Transform for Recharts
     const chartData = result.time.map((t, i) => ({
       time: t,
@@ -21,7 +31,7 @@ const FO2TimeSim: React.FC = () => {
       pO2: result.pO2[i]
     })).filter((_, i) => i % params.freq === 0 || i === result.time.length - 1); // Sample every minute for the graph/table to keep it clean
 
-    return chartData;
+    return { simulation: chartData, summary };
   }, [depth, fO2Mix, fO2Start, params]);
 
   const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
@@ -52,6 +62,9 @@ const FO2TimeSim: React.FC = () => {
           onChange={setFO2Start}
         />
       </div>
+
+      <h3 className="section-title">Summary</h3>
+      <SimSummary {...summary} pressureUnit={pressureUnit} />
 
       <h3 className="section-title">pO2 Over Time</h3>
       <div className="card" style={{ height: '300px', padding: '10px 20px 10px 0' }}>

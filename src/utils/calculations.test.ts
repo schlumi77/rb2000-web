@@ -12,6 +12,7 @@ import {
   barPerMToAtaPerFt,
   ataPerFtToBarPerM,
   sanitizeParams,
+  assessPO2Limits,
   PARAM_LIMITS,
   DEFAULT_PARAMS
 } from './calculations';
@@ -205,6 +206,57 @@ describe('RBCalculations Port', () => {
         const sim = simulateLoopGas(21, 0.5, 0.21, params);
         expect(sim.fO2.every(Number.isFinite)).toBe(true);
       }
+    });
+  });
+
+  describe('assessPO2Limits', () => {
+    // Builds a simulation from pO2 samples one minute apart.
+    const simOf = (pO2: number[]) => ({ time: pO2.map((_, i) => i), fO2: pO2.map(() => 0), pO2 });
+
+    it('should report a loop that stays within the limits', () => {
+      expect(assessPO2Limits(simOf([0.6, 1.0, 1.4, 1.5]))).toEqual({ status: 'within' });
+    });
+
+    it('should report when a loop first rises above the high limit', () => {
+      expect(assessPO2Limits(simOf([1.2, 1.5, 1.61, 1.7]))).toEqual({ status: 'leaves', time: 2, side: 'high' });
+    });
+
+    it('should report when a loop first drops below the low limit', () => {
+      expect(assessPO2Limits(simOf([0.3, 0.2, 0.15, 0.1]))).toEqual({ status: 'leaves', time: 2, side: 'low' });
+    });
+
+    it('should treat values exactly at a limit as within', () => {
+      expect(assessPO2Limits(simOf([0.16, 1.6]))).toEqual({ status: 'within' });
+    });
+
+    it('should report when a loop that starts outside comes back within the limits', () => {
+      expect(assessPO2Limits(simOf([2.0, 1.8, 1.55, 1.4]))).toEqual({ status: 'returns', time: 2 });
+    });
+
+    it('should report the time from which the loop stays within, not the first dip inside', () => {
+      expect(assessPO2Limits(simOf([1.7, 1.5, 1.65, 1.5, 1.4]))).toEqual({ status: 'returns', time: 3 });
+    });
+
+    it('should report a loop that is still outside at the end', () => {
+      expect(assessPO2Limits(simOf([2.0, 1.9, 1.8]))).toEqual({ status: 'outside', side: 'high' });
+      expect(assessPO2Limits(simOf([0.1, 0.12, 0.14]))).toEqual({ status: 'outside', side: 'low' });
+    });
+
+    it('should return null for an empty simulation', () => {
+      expect(assessPO2Limits(simOf([]))).toBeNull();
+    });
+
+    it('should find the crossing in a real simulation', () => {
+      // 40m with 60% supply: steady-state pO2 ≈ 2.4 bar, so a loop starting
+      // at 21% (0.105 x 5 bar = 1.05 bar) must rise past 1.60.
+      const sim = simulateLoopGas(40, 0.6, 0.21, defaultParams);
+      const result = assessPO2Limits(sim);
+      expect(result?.status).toBe('leaves');
+      if (result?.status !== 'leaves') return;
+      expect(result.side).toBe('high');
+      const i = sim.time.indexOf(result.time);
+      expect(sim.pO2[i]).toBeGreaterThan(1.6);
+      expect(sim.pO2[i - 1]).toBeLessThanOrEqual(1.6);
     });
   });
 

@@ -194,6 +194,50 @@ export const simulateLoopGas = (
   };
 };
 
+export type LimitSide = 'low' | 'high';
+
+/**
+ * How a simulated loop pO2 relates to the pO2 safety limits over time:
+ * - `within`:  inside the limits for the whole simulation
+ * - `leaves`:  starts inside, first goes outside at `time` (past `side`)
+ * - `returns`: starts outside, is inside from `time` to the end
+ * - `outside`: still outside at the end of the simulation (past `side`)
+ */
+export type PO2LimitAssessment =
+  | { status: 'within' }
+  | { status: 'leaves'; time: number; side: LimitSide }
+  | { status: 'returns'; time: number }
+  | { status: 'outside'; side: LimitSide };
+
+/**
+ * Assesses a simulation against the pO2 limits. For a loop that starts inside
+ * the limits, the first excursion is what matters, so `leaves` reports the
+ * first point outside. For one that starts outside, `returns` reports the
+ * point from which it stays inside. Returns null for an empty simulation.
+ */
+export const assessPO2Limits = (
+  sim: SimulationResult,
+  low: number = CONSTANTS.PPO2_LOW_LIMIT,
+  high: number = CONSTANTS.PPO2_HIGH_LIMIT
+): PO2LimitAssessment | null => {
+  const { pO2, time } = sim;
+  if (pO2.length === 0) return null;
+
+  const sideOf = (p: number): LimitSide | null => (p < low ? 'low' : p > high ? 'high' : null);
+
+  if (sideOf(pO2[0]) === null) {
+    const exit = pO2.findIndex((p) => sideOf(p) !== null);
+    return exit === -1
+      ? { status: 'within' }
+      : { status: 'leaves', time: time[exit], side: sideOf(pO2[exit])! };
+  }
+
+  const lastOutside = pO2.findLastIndex((p) => sideOf(p) !== null);
+  return lastOutside === pO2.length - 1
+    ? { status: 'outside', side: sideOf(pO2[lastOutside])! }
+    : { status: 'returns', time: time[lastOutside + 1] };
+};
+
 /**
  * Calculates gas density.
  */
