@@ -24,7 +24,7 @@ A modern, reactive web application for rebreather diving calculations, ported fr
 - **Charts:** Recharts
 - **Icons:** Lucide React
 - **Testing:** Vitest
-- **Styling:** Vanilla CSS (CSS Modules & Variables)
+- **Styling:** Vanilla CSS (CSS Variables, light and dark mode)
 - **Deployment:** GitHub Actions & GitHub Pages
 
 ## Getting Started

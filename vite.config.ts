@@ -27,7 +27,21 @@ export default defineConfig({
         // The app is served from a project subpath on GitHub Pages.
         scope: '/rb2000-web/',
         start_url: '/rb2000-web/',
+        // 192 and 512 px are the sizes Android expects for install and the
+        // splash screen; the 1024 px source covers larger displays.
         icons: [
+          {
+            src: 'appicon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'appicon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
           {
             src: 'appicon.png',
             sizes: '1024x1024',
