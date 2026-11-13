@@ -2,7 +2,16 @@
 import React, { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useDiveInputs } from '../context/DiveInputsContext';
-import { simulateLoopGas, sampleEveryMinute, calculateFO2GG, calculatePAmb, assessPO2Limits, CONSTANTS } from '../utils/calculations';
+import {
+  simulateLoopGas,
+  sampleEveryMinute,
+  calculateFO2GG,
+  calculatePAmb,
+  assessPO2Limits,
+  toDisplayPressure,
+  pressureUnit as unitFor,
+  CONSTANTS,
+} from '../utils/calculations';
 import { valueAxisTicks, minuteAxisTicks } from '../utils/chartAxis';
 import DepthSlider from '../components/DepthSlider';
 import SliderRow from '../components/SliderRow';
@@ -36,10 +45,17 @@ const FO2TimeSim: React.FC = () => {
     return { simulation: chartData, summary };
   }, [depth, fO2Mix, fO2Start, params]);
 
-  const pressureUnit = units === 'Metric' ? 'bar' : 'ata';
-  // Fixed ticks keep the axis labels round and the 1.60 limit line on the
+  // The simulation and limit checks are in bar; the chart and table show
+  // pO2 in the selected unit (bar or ata).
+  const pressureUnit = unitFor(units);
+  const show = (bar: number) => toDisplayPressure(bar, units);
+  const rows = simulation.map((d) => ({ ...d, pO2Display: show(d.pO2) }));
+  const isOutsideLimits = (bar: number) =>
+    bar < CONSTANTS.PPO2_LOW_LIMIT || bar > CONSTANTS.PPO2_HIGH_LIMIT;
+
+  // Fixed ticks keep the axis labels round and the high limit line on the
   // chart even when the loop pO2 goes far above it.
-  const yTicks = valueAxisTicks(Math.max(0, ...simulation.map((d) => d.pO2)), CONSTANTS.PPO2_HIGH_LIMIT);
+  const yTicks = valueAxisTicks(Math.max(0, ...rows.map((d) => d.pO2Display)), show(CONSTANTS.PPO2_HIGH_LIMIT));
   const xTicks = minuteAxisTicks(simulation.length > 0 ? simulation[simulation.length - 1].time : 0);
 
   return (
@@ -70,12 +86,12 @@ const FO2TimeSim: React.FC = () => {
       </div>
 
       <h3 className="section-title">Summary</h3>
-      <SimSummary {...summary} pressureUnit={pressureUnit} />
+      <SimSummary {...summary} units={units} />
 
       <h3 className="section-title">pO2 Over Time</h3>
       <div className="card" style={{ height: '300px', padding: '10px 20px 10px 0' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={simulation}>
+          <LineChart data={rows}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="time"
@@ -97,11 +113,11 @@ const FO2TimeSim: React.FC = () => {
               formatter={(value: any) => [Number(value).toFixed(3), 'pO2']}
               labelFormatter={(label) => `Time: ${label} min`}
             />
-            <ReferenceLine y={CONSTANTS.PPO2_HIGH_LIMIT} stroke="var(--danger-color)" strokeDasharray="3 3" />
-            <ReferenceLine y={CONSTANTS.PPO2_LOW_LIMIT} stroke="var(--danger-color)" strokeDasharray="3 3" />
+            <ReferenceLine y={show(CONSTANTS.PPO2_HIGH_LIMIT)} stroke="var(--danger-color)" strokeDasharray="3 3" />
+            <ReferenceLine y={show(CONSTANTS.PPO2_LOW_LIMIT)} stroke="var(--danger-color)" strokeDasharray="3 3" />
             <Line 
               type="monotone" 
-              dataKey="pO2" 
+              dataKey="pO2Display"
               stroke="var(--primary-color)" 
               dot={false} 
               strokeWidth={2}
@@ -121,12 +137,12 @@ const FO2TimeSim: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {simulation.map((d) => (
+            {rows.map((d) => (
               <tr key={d.time} style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <td style={{ padding: '10px' }}>{d.time}</td>
                 <td style={{ padding: '10px' }}>{d.fO2.toFixed(1)}%</td>
-                <td style={{ padding: '10px', color: (d.pO2 < CONSTANTS.PPO2_LOW_LIMIT || d.pO2 > CONSTANTS.PPO2_HIGH_LIMIT) ? 'var(--danger-color)' : 'var(--primary-color)' }}>
-                  {d.pO2.toFixed(3)}
+                <td style={{ padding: '10px', color: isOutsideLimits(d.pO2) ? 'var(--danger-color)' : 'var(--primary-color)' }}>
+                  {d.pO2Display.toFixed(3)}
                 </td>
               </tr>
             ))}

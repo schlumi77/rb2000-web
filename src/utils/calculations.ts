@@ -8,8 +8,8 @@ export interface CalculationParams {
   kr: number;       // Gas leakage [%]
   v: number;        // System Volume [l]
   freq: number;     // Breathing frequency [1/min]
-  pSurf: number;    // Surface pressure [bar/ata]
-  dpdt: number;     // Pressure increment [bar/m or ata/ft]
+  pSurf: number;    // Surface pressure [bar]
+  dpdt: number;     // Pressure increment [bar/m]
   algorithm: Algorithm;
 }
 
@@ -76,6 +76,7 @@ export const CONSTANTS = {
   LIMIT_GAS_DENSITY: 5.2,
   PERCENT_CONVERSION: 100.0,
   METER_FT_CONVERSION: 0.3048, // metres per foot (exact)
+  BAR_PER_ATA: 1.01325, // 1 standard atmosphere in bar (exact)
   GAS_DENSITY_HE: 0.179,
   GAS_DENSITY_O2: 1.428,
   GAS_DENSITY_N2: 1.251,
@@ -290,11 +291,29 @@ export const calculateGasDensity = (depth: number, fO2: number, fHe: number, pSu
 export const mToFt = (m: number): number => m / CONSTANTS.METER_FT_CONVERSION;
 export const ftToM = (ft: number): number => ft * CONSTANTS.METER_FT_CONVERSION;
 
+/** Pressure conversions between bar (metric) and ata (imperial). */
+export const barToAta = (bar: number): number => bar / CONSTANTS.BAR_PER_ATA;
+export const ataToBar = (ata: number): number => ata * CONSTANTS.BAR_PER_ATA;
+
 /**
  * Pressure-gradient conversions between bar/m (metric) and ata/ft (imperial).
- * dpdt is a pressure-per-distance quantity, so converting the distance from
- * metres to feet scales it by METER_FT_CONVERSION (metres per foot). Using the
- * same constant as mToFt/ftToM keeps pAmb identical across unit systems.
+ * Both the pressure (bar → ata) and the distance (per metre → per foot)
+ * change, so the gradient scales by METER_FT_CONVERSION / BAR_PER_ATA. Using
+ * the same constants as mToFt and barToAta keeps pAmb consistent across unit
+ * systems.
  */
-export const barPerMToAtaPerFt = (v: number): number => v * CONSTANTS.METER_FT_CONVERSION;
-export const ataPerFtToBarPerM = (v: number): number => v / CONSTANTS.METER_FT_CONVERSION;
+export const barPerMToAtaPerFt = (v: number): number =>
+  barToAta(v) * CONSTANTS.METER_FT_CONVERSION;
+export const ataPerFtToBarPerM = (v: number): number =>
+  ataToBar(v) / CONSTANTS.METER_FT_CONVERSION;
+
+/**
+ * Display helpers for pressures. Everything is calculated and stored in bar,
+ * and the pO2 limits are always checked in bar; these only convert values for
+ * display (and back from input) when the Imperial unit system is selected.
+ */
+export const pressureUnit = (units: Units): 'bar' | 'ata' => (units === 'Metric' ? 'bar' : 'ata');
+export const toDisplayPressure = (bar: number, units: Units): number =>
+  units === 'Metric' ? bar : barToAta(bar);
+export const fromDisplayPressure = (value: number, units: Units): number =>
+  units === 'Metric' ? value : ataToBar(value);

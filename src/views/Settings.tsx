@@ -1,7 +1,14 @@
 
 import React, { useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { barPerMToAtaPerFt, ataPerFtToBarPerM, PARAM_LIMITS } from '../utils/calculations';
+import {
+  barPerMToAtaPerFt,
+  ataPerFtToBarPerM,
+  toDisplayPressure,
+  fromDisplayPressure,
+  pressureUnit,
+  PARAM_LIMITS,
+} from '../utils/calculations';
 import type { Algorithm } from '../utils/calculations';
 import NumberField from '../components/NumberField';
 import About from './About';
@@ -19,9 +26,13 @@ const SettingsView: React.FC = () => {
     updateUnits(units === 'Metric' ? 'Imperial' : 'Metric');
   };
 
-  // dpdt is stored canonically in bar/m. In Imperial mode it (and its allowed
-  // range) is shown and edited in ata/ft, converting back to the canonical
-  // value on commit.
+  // pSurf and dpdt are stored canonically in bar and bar/m. In Imperial mode
+  // they (and their allowed ranges) are shown and edited in ata and ata/ft,
+  // converting back to the canonical value on commit. Display values are
+  // rounded; an out-of-range rounding is pulled back by sanitizeParams.
+  const unit = pressureUnit(units);
+  const pSurfToDisplay = (bar: number) =>
+    isMetric ? bar : Number(toDisplayPressure(bar, units).toFixed(4));
   const dpdtToDisplay = (barPerM: number) =>
     isMetric ? barPerM : Number(barPerMToAtaPerFt(barPerM).toFixed(5));
 
@@ -94,12 +105,13 @@ const SettingsView: React.FC = () => {
           onCommit={(v) => updateParams({ v })}
         />
         <NumberField
-          label={`p_surf [${isMetric ? 'bar' : 'ata'}]`}
-          value={params.pSurf}
-          {...PARAM_LIMITS.pSurf}
-          step="0.01"
-          ariaLabel={`Surface pressure in ${isMetric ? 'bar' : 'ata'}`}
-          onCommit={(pSurf) => updateParams({ pSurf })}
+          label={`p_surf [${unit}]`}
+          value={pSurfToDisplay(params.pSurf)}
+          min={pSurfToDisplay(PARAM_LIMITS.pSurf.min)}
+          max={pSurfToDisplay(PARAM_LIMITS.pSurf.max)}
+          step={isMetric ? '0.01' : 'any'}
+          ariaLabel={`Surface pressure in ${unit}`}
+          onCommit={(pSurf) => updateParams({ pSurf: fromDisplayPressure(pSurf, units) })}
         />
         <NumberField
           label={`dpdt [${isMetric ? 'bar/m' : 'ata/ft'}]`}

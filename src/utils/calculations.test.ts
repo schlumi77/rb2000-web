@@ -11,6 +11,11 @@ import {
   ftToM,
   barPerMToAtaPerFt,
   ataPerFtToBarPerM,
+  barToAta,
+  ataToBar,
+  pressureUnit,
+  toDisplayPressure,
+  fromDisplayPressure,
   sanitizeParams,
   assessPO2Limits,
   sampleEveryMinute,
@@ -317,21 +322,47 @@ describe('RBCalculations Port', () => {
       expect(ftToM(mToFt(10))).toBeCloseTo(10, 10);
     });
 
+    it('should convert bar to ata and back', () => {
+      // 1 atm = 1.01325 bar exactly
+      expect(barToAta(1.01325)).toBeCloseTo(1, 12);
+      expect(barToAta(1.6)).toBeCloseTo(1.57908, 5);
+      expect(ataToBar(1)).toBeCloseTo(1.01325, 12);
+      expect(ataToBar(barToAta(1.35))).toBeCloseTo(1.35, 12);
+    });
+
     it('should convert the pressure gradient bar/m to ata/ft', () => {
-      // 0.1 bar/m * 0.3048 m/ft = 0.03048 ata/ft
-      expect(barPerMToAtaPerFt(0.1)).toBeCloseTo(0.03048, 6);
+      // 0.1 bar/m / 1.01325 bar/ata * 0.3048 m/ft = 0.0300814 ata/ft
+      expect(barPerMToAtaPerFt(0.1)).toBeCloseTo(0.0300814, 7);
     });
 
     it('should round-trip the pressure gradient conversion', () => {
-      expect(ataPerFtToBarPerM(barPerMToAtaPerFt(0.1))).toBeCloseTo(0.1, 5);
+      expect(ataPerFtToBarPerM(barPerMToAtaPerFt(0.1))).toBeCloseTo(0.1, 12);
     });
 
-    it('should give an identical pAmb in metric and imperial representations', () => {
-      // Same physical depth + matching gradient must yield the same ambient
-      // pressure regardless of the unit system the user has selected.
+    it('should give the same ambient pressure in metric and imperial representations', () => {
+      // Same physical depth, surface pressure and gradient, expressed in
+      // ft/ata/ata-per-ft, must give the same pressure, in ata.
       const metricPAmb = calculatePAmb(200, 1.0, 0.1);
-      const imperialPAmb = calculatePAmb(mToFt(200), 1.0, barPerMToAtaPerFt(0.1));
-      expect(imperialPAmb).toBeCloseTo(metricPAmb, 5);
+      const imperialPAmb = calculatePAmb(mToFt(200), barToAta(1.0), barPerMToAtaPerFt(0.1));
+      expect(imperialPAmb).toBeCloseTo(barToAta(metricPAmb), 10);
+    });
+  });
+
+  describe('pressure display helpers', () => {
+    it('should name the pressure unit for each unit system', () => {
+      expect(pressureUnit('Metric')).toBe('bar');
+      expect(pressureUnit('Imperial')).toBe('ata');
+    });
+
+    it('should leave bar unchanged in metric', () => {
+      expect(toDisplayPressure(1.35, 'Metric')).toBe(1.35);
+      expect(fromDisplayPressure(1.35, 'Metric')).toBe(1.35);
+    });
+
+    it('should convert bar to ata in imperial, and back from input', () => {
+      // Default dive: loop pO2 1.350 bar shows as 1.332 ata.
+      expect(toDisplayPressure(1.35, 'Imperial')).toBeCloseTo(1.33235, 5);
+      expect(fromDisplayPressure(1, 'Imperial')).toBeCloseTo(1.01325, 12);
     });
   });
 });
