@@ -13,6 +13,7 @@ import {
   ataPerFtToBarPerM,
   sanitizeParams,
   assessPO2Limits,
+  sampleEveryMinute,
   PARAM_LIMITS,
   DEFAULT_PARAMS
 } from './calculations';
@@ -206,6 +207,50 @@ describe('RBCalculations Port', () => {
         const sim = simulateLoopGas(21, 0.5, 0.21, params);
         expect(sim.fO2.every(Number.isFinite)).toBe(true);
       }
+    });
+  });
+
+  describe('sampleEveryMinute', () => {
+    it('should pick the exact step at each whole minute for an integer frequency', () => {
+      const sim = simulateLoopGas(21, 0.5, 0.21, defaultParams); // freq 20
+      const sampled = sampleEveryMinute(sim);
+      expect(sampled.time.slice(0, 4)).toEqual([0, 1, 2, 3]);
+      expect(sampled.fO2[0]).toBe(sim.fO2[0]);
+      expect(sampled.fO2[1]).toBeCloseTo(sim.fO2[20], 12);
+      expect(sampled.pO2[3]).toBeCloseTo(sim.pO2[60], 12);
+    });
+
+    it('should end at the last whole minute instead of a fractional end time', () => {
+      // Regression: the chart's last point used to be the raw end time (35.95).
+      const sim = simulateLoopGas(21, 0.5, 0.21, defaultParams);
+      const sampled = sampleEveryMinute(sim);
+      expect(sim.time[sim.time.length - 1]).toBeCloseTo(35.95, 10);
+      expect(sampled.time[sampled.time.length - 1]).toBe(35);
+      expect(sampled.time.every(Number.isInteger)).toBe(true);
+    });
+
+    it('should give one point per minute for a non-integer frequency', () => {
+      // Regression: with freq 12.5 the old modulo sampling only matched every
+      // second minute.
+      const params: CalculationParams = { ...defaultParams, freq: 12.5 };
+      const sim = simulateLoopGas(21, 0.5, 0.21, params);
+      const sampled = sampleEveryMinute(sim);
+      const lastMinute = Math.floor(sim.time[sim.time.length - 1]);
+      expect(sampled.time).toEqual(Array.from({ length: lastMinute + 1 }, (_, i) => i));
+    });
+
+    it('should interpolate between breaths when a minute falls between steps', () => {
+      // freq 12.5: minute 1 is step 12.5, halfway between steps 12 and 13.
+      const params: CalculationParams = { ...defaultParams, freq: 12.5 };
+      const sim = simulateLoopGas(21, 0.5, 0.21, params);
+      const sampled = sampleEveryMinute(sim);
+      expect(sampled.pO2[1]).toBeCloseTo((sim.pO2[12] + sim.pO2[13]) / 2, 12);
+      // minute 2 is step 25 exactly
+      expect(sampled.pO2[2]).toBeCloseTo(sim.pO2[25], 12);
+    });
+
+    it('should return empty arrays for an empty simulation', () => {
+      expect(sampleEveryMinute({ time: [], fO2: [], pO2: [] })).toEqual({ time: [], fO2: [], pO2: [] });
     });
   });
 

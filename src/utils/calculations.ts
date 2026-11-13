@@ -194,6 +194,39 @@ export const simulateLoopGas = (
   };
 };
 
+/**
+ * Samples a simulation at whole minutes (0, 1, 2, …) for the chart and table.
+ * The simulation steps once per breath, so with a non-integer breathing
+ * frequency a whole minute can fall between two steps; values there are
+ * linearly interpolated. Minutes past the end of the simulation are omitted.
+ */
+export const sampleEveryMinute = (sim: SimulationResult): SimulationResult => {
+  const { time, fO2, pO2 } = sim;
+  const out: SimulationResult = { time: [], fO2: [], pO2: [] };
+  if (time.length === 0) return out;
+
+  const last = time.length - 1;
+  const start = time[0];
+  const dt = last > 0 ? time[1] - time[0] : 1;
+
+  for (let minute = Math.ceil(start); minute <= time[last] + 1e-9; minute++) {
+    // Fractional step index of this minute; snap float noise (e.g. 19.9999…)
+    // so whole-number positions read the step exactly.
+    const raw = (minute - start) / dt;
+    const pos = Math.abs(raw - Math.round(raw)) < 1e-9 ? Math.round(raw) : raw;
+    const i0 = Math.min(Math.floor(pos), last);
+    const i1 = Math.min(i0 + 1, last);
+    const frac = pos - i0;
+    const lerp = (values: number[]) => values[i0] + (values[i1] - values[i0]) * frac;
+
+    out.time.push(minute);
+    out.fO2.push(lerp(fO2));
+    out.pO2.push(lerp(pO2));
+  }
+
+  return out;
+};
+
 export type LimitSide = 'low' | 'high';
 
 /**
