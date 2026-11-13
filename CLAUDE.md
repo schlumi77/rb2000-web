@@ -44,6 +44,16 @@ React 19 · TypeScript (strict) · Vite · Recharts (charts) · Lucide React (ic
 
 `.github/workflows/deploy.yml` lints, tests, builds and deploys to GitHub Pages on every push to `main`; `.github/workflows/ci.yml` runs the same lint/test/build checks on pull requests. The Vite `base` in [`vite.config.ts`](vite.config.ts) must stay `/rb2000-web/` for asset paths to resolve on the Pages sub-path. The app is also a PWA (installable, with an `apple-touch-icon` for iOS home-screen).
 
+## Versioning
+
+Every pull request bumps the app version following [Semantic Versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). The version lives in `package.json` and is shown in the app under Setup → About (injected as `__APP_VERSION__` by [`vite.config.ts`](vite.config.ts)).
+
+- **MAJOR** — a breaking change for users: calculation results change for the same inputs (formula, constant or unit-conversion changes), or stored settings are no longer compatible.
+- **MINOR** — new functionality that keeps existing results unchanged (a new view, input or option).
+- **PATCH** — bug fixes, UI polish, refactoring, dependency updates, and docs/CI-only changes.
+
+Bump with `npm version <major|minor|patch> --no-git-tag-version`, which updates `package.json` and `package-lock.json` together, and commit the bump in the same PR. Use the highest level that applies to the PR as a whole, and state the new version and the reason for the level in the PR description.
+
 ## Notes
 
 - This is a diving-safety tool. Be conservative with the calculation logic; when in doubt about a formula, ask rather than guess.
